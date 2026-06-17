@@ -1,0 +1,134 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+
+/* gfgf*/
+
+/*hero banner image styles*/
+.hero.banner-image {
+  /* 1. DEFINE THE IMAGE */
+  /* Make sure you put your photo in /public/images/gym-bg.jpg */
+  background-image: url('/csu lib.jpg'); 
+  
+  /* 2. POSITIONING AND SIZING */
+  background-size: cover;    /* Scale the image to fill the container */
+  background-position: center; /* Center the image */
+  background-repeat: no-repeat; /* Do not tile the image */
+  
+  /* 3. ENSURE READABILITY (CRUCIAL) */
+  /* This adds a dark overlay so your white text is easy to read. */
+  position: relative; /* Needed for the overlay */
+}
+
+/* Create the dark overlay using a ::before pseudo-element */
+.hero.banner-image::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6); /* 60% black overlay */
+  z-index: 1; /* Puts the overlay over the image */
+}
+
+/* Make sure your content is ON TOP of the overlay */
+.hero.banner-image .container {
+  position: relative;
+  z-index: 2; /* Puts the text on top of everything */
+}
+
+
+.title {
+  font-family: var(--font-geist-sans); /* Use the font already in your layout */
+  font-weight: 700;                   /* Make it bold */
+  letter-spacing: -1px;               /* Optional: make it look more modern */
+}
+
+
+/* -------------- Navbar override styles --------------- */
+
+/* Force the container to be visible and white */
+nav.navbar ul.navbar-nav li.nav-item a.nav-link {
+    color: #ffffff !important;
+    opacity: 1 !important;
+    display: block !important;
+    visibility: visible !important;
+    font-size: 16px !important;
+    text-transform: uppercase !important;
+}
+
+/* Force hover state visibility */
+nav.navbar ul.navbar-nav li.nav-item a.nav-link:hover {
+    color: #0d6efd !important;
+}
+
+/* 1. Base State: Fully Transparent */
+.navbar {
+  background-color: transparent !important;
+  transition: background-color 0.4s ease;
+}
+
+/* 2. Scrolled State: Solid Dark */
+.navbar.navbar-scrolled {
+  background-color: #212529 !important; /* Your solid color */
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+/* 3. Ensure the links stay visible */
+.navbar .nav-link {
+  color: #ffffff !important;
+}
+
+
+/* -------------- Navbar override styles --------------- */
+
+/* -------------- Gallery picture styles --------------- */
+/* Ensure the wrapper uses a grid layout */
+.wrapper {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  width: 100%;
+}
+
+/* Ensure each product card is consistent */
+.gallery_product {
+  position: relative;
+  height: 250px; /* Force uniform height */
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.gallery_product img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Prevents images from stretching */
+  transition: transform 0.3s;
+}
+
+/* Hover effect */
+.gallery_product:hover img {
+  transform: scale(1.1);
+}
