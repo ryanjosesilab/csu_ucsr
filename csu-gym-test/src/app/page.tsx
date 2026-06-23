@@ -1,16 +1,27 @@
 import { FaFacebook } from 'react-icons/fa6';
 import Navbar from '../components/Navbar';
+import ExpandableImage from '../components/ExpandableImage';
+
+
+
 
 export default function Home() {
   return (
-    <main>
+    <main style={{ overflowX: 'hidden', minHeight: '100vh' }}>
       <Navbar />
       
-    <section id="home" className="hero banner-image w-100 vh-100 d-flex justify-content-center align-items-center">
-  <div className="container">
+      <section id="home" className="hero banner-image min-vh-100 d-flex justify-content-center align-items-center">
+  <div className="container min-vh-100 d-flex justify-content-center align-items-center">
     <div className="content text-center">
+      <img 
+  src="/logo3.png" 
+  alt="CSU Sports Logo" 
+  className="hero-logo mx-auto d-block" 
+  data-aos="zoom-in" 
+  data-aos-duration="800"
+/>
       
-      <h1 className="title text-white" style={{ fontFamily: "'CMU Serif', serif", fontSize: '3rem' }} data-aos="zoom-in" data-aos-duration="800">
+      <h1 className="title text-white" style={{ fontFamily: "'CMU Serif', serif" }} data-aos="zoom-in" data-aos-duration="800">
       Caraga State University <br/>University Center for Sports and Recreational 
       </h1>
       <p
@@ -50,21 +61,21 @@ export default function Home() {
 
 
 
-      <section id="service">
+      <section id="service" style={{ minHeight: '50vh' }}>
          <div className="container">
             <div data-aos="fade-up">
                <h2 className="section-title text-center mt-5" style={{ fontFamily: 'Georgia, serif', fontWeight: 'bold' }}>Our Services</h2>
                <p className="text-center">The sports University Center provides a range of free services to help students and athletes enhance <br />their skills and enjoy their experience to the fullest.</p>
             </div>
             <div className="row mt-4">
-               <div className="col-lg-4 col-md-6 mt-3 mt-lg-0" data-aos="flip-down">
+               <div className="col-12 col-md-6 col-lg-3 mt-3 mt-lg-0" data-aos="flip-down">
                   <div className="card h-100">
                      <img
                         src="/sports equipment.png"
                         className="mx-auto mt-4"
                         alt="..."
                      />
-                     <h5 className="text-center mt-2" style={{ fontFamily: 'Georgia, serif', fontWeight: 'bold' }}>Free Borrowing of Sports Equipment</h5>
+                     <h5 className="text-center mt-2" style={{ fontFamily: 'Georgia, serif', fontWeight: 'bold' }}>Borrowing of Sports Equipment</h5>
                      <div className="card-body text-center">
                         <p className="card-text text-center">
                            We offer a variety of sports equipment available for students to borrow free of charge. Our inventory includes basketballs, tennis rackets, soccer balls, volleyball nets, and more. All equipment is regularly inspected and maintained to ensure it's in great condition for use. Students can visit the equipment room and borrow what they need by presenting their student ID. This makes it easy to access the gear you need for practice, games, or recreational activities.
@@ -73,7 +84,7 @@ export default function Home() {
                   </div>
                </div>
                <div
-                className="col-lg-4 col-md-6 mt-3 mt-lg-0"
+                className="col-12 col-md-6 col-lg-3 mt-3 mt-lg-0"
                   data-aos="flip-down"
                   data-aos-delay="300"
                >
@@ -83,7 +94,7 @@ export default function Home() {
                         className="mx-auto mt-4"
                         alt="..."
                      />
-                     <h5 className="text-center mt-2" style={{ fontFamily: 'Georgia, serif', fontWeight: 'bold' }}>Free Gym Sessions</h5>
+                     <h5 className="text-center mt-2" style={{ fontFamily: 'Georgia, serif', fontWeight: 'bold' }}>Fitness Gym Sessions</h5>
                      <div className="card-body text-center">
                         <p className="card-text text-center">
                            We provide free training sessions aimed at improving physical fitness, endurance, and sport-specific skills. Led by certified trainers, these sessions include strength training, agility exercises, and conditioning workouts. They are open to all students, regardless of experience, allowing everyone to benefit from structured training programs. Sessions are held regularly, and students can join based on their fitness goals or upcoming competitions. These training programs are perfect for those looking to stay active and improve their athletic performance.
@@ -92,7 +103,7 @@ export default function Home() {
                   </div>
                </div>
                <div
-                  className="col-lg-4 col-md-6 mt-3 mt-lg-0"
+                  className="col-12 col-md-6 col-lg-3 mt-3 mt-lg-0"
                   data-aos="flip-down"
                   data-aos-delay="500"
                >
@@ -109,6 +120,27 @@ export default function Home() {
                         </p>
                      </div>
                   </div>
+                  
+               </div>
+                <div
+                  className="col-12 col-md-6 col-lg-3 mt-3 mt-lg-0"
+                  data-aos="flip-down"
+                  data-aos-delay="700"
+               >
+                  <div className="card h-100">
+                     <img
+                        src="athlete selection.png"
+                        className="mx-auto mt-4"
+                        alt="..."
+                     />
+                     <h5 className="text-center mt-2" style={{ fontFamily: 'Georgia, serif', fontWeight: 'bold' }}>Selection for Student Athletes</h5>
+                     <div className="card-body text-center">
+                        <p className="card-text text-center">
+                           The UCSR conducts organized tryouts and scouting programs to identify and recruit talented student-athletes for the university’s varsity teams. This selection process ensures that students with exceptional athletic potential receive the professional training, development opportunities, and support necessary to represent the university in regional and national competitions.
+                        </p>
+                     </div>
+                  </div>
+                  
                </div>
             </div>
          </div>
@@ -121,7 +153,41 @@ export default function Home() {
 
       
        <section id="about">
+         <h2 className="section-title text-center mt-5 mb-3"  
+                  data-aos="fade-up"
+                 data-aos-delay="400" style={{ fontFamily: 'Georgia, serif', fontWeight: 'bold' }}>About</h2>
          <div className="container px-sm-0 px-lg-5 py-4">
+
+            <div
+                  className="wrapper mt-2"
+                  data-aos="fade-up"
+                  data-aos-delay="400"
+               >
+                  <div className="gallery_product card-project filter design">
+                     <ExpandableImage src="/officers.jpeg" className="img-fluid" />
+                     
+                  </div>
+
+                  <div className="gallery_product card-project filter development">
+                     <ExpandableImage src="/mission vission.png" className="img-fluid" />
+                     
+                  </div>
+
+                  <div className="gallery_product card-project filter development">
+                     
+                    <ExpandableImage src="/UCSR.jpeg" className="img-fluid" />
+                  </div>
+
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+               </div>
             <div className="row">
                <div
                   className="col-lg-6 col-12"
@@ -141,7 +207,7 @@ export default function Home() {
                   data-aos-offset="400"
                   data-aos-duration="800"
                >
-                  <h2 className="section-title text-center mt-5 mb-5" style={{ fontFamily: 'Georgia, serif', fontWeight: 'bold' }}>About</h2>
+                 
                   <h2 className="section-title" style={{ fontFamily: "'CMU Serif', serif" }}>University Center for Sports and Recreation</h2>
                   <p className="desc text-center mt-3 mt-4">
                      The University Center for Sports and Recreation is situated at the heart of the campus, adjacent to the main gymnasium and near the student activity center.
@@ -151,6 +217,11 @@ export default function Home() {
                   </p>
 
                </div>
+               <div className="row mt-2">
+              
+
+               
+            </div>
             </div>
          </div>
       </section>
@@ -165,15 +236,21 @@ export default function Home() {
 
 
 
-      <section id="gallery">
+      <section id="documentation">
          <div className="container">
             <div data-aos="fade-up">
-               <h2 className="section-title text-center mt-5 mb-5" style={{ fontFamily: 'Georgia, serif', fontWeight: 'bold' }}>Gallery</h2>
+               <h2 className="section-title text-center mt-5 mb-3" style={{ fontFamily: 'Georgia, serif', fontWeight: 'bold' }}>Documentation</h2>
                <p className="section-title text-center">At the UCSR, we don't just host events, we guide the students. By incorporating facilities with inclusive programs, we translate the spirit of competition into lifelong habits of health. We are constantly evolving to meet the needs of our athletes and fitness enthusiasts, driven by a passion to inspire, connect, and elevate the standard of active living at CSU.</p>
             </div>
 
-            <div className="row mt-2">
+
+
+
+            
               
+
+
+
 
                <div
                   className="wrapper mt-2"
@@ -181,10 +258,12 @@ export default function Home() {
                   data-aos-delay="400"
                >
                   <div className="gallery_product card-project filter design">
+                     <a href="https://www.facebook.com/share/18kYAN7rCB/" target="_blank" rel="noopener noreferrer">
                      <img
                         src="/events1.jpg"
                         className="img-fluid"
                      />
+                     </a>
                      <div className="overlay">
                         <a href="https://azurakit.vercel.app" target="_blank">
                            <i className="ai-link-out"></i>
@@ -193,10 +272,12 @@ export default function Home() {
                   </div>
 
                   <div className="gallery_product card-project filter development">
+                     <a href="https://www.facebook.com/share/1BU8HQVFBk/" target="_blank" rel="noopener noreferrer">
                      <img
                         src="/events2.jpg"
                         className="img-fluid"
                      />
+                     </a>
                      <div className="overlay">
                         <a href="https://azurakit.vercel.app" target="_blank">
                            <i className="ai-link-out"></i>
@@ -205,10 +286,13 @@ export default function Home() {
                   </div>
 
                   <div className="gallery_product card-project filter development">
+                     
+                    <a href="https://www.facebook.com/share/1XKgSVLWeX/" target="_blank" rel="noopener noreferrer">
                      <img
                         src="/events3.jpg"
                         className="img-fluid"
                      />
+                     </a>
                      <div className="overlay">
                         <a href="https://azurakit.vercel.app" target="_blank">
                            <i className="ai-link-out"></i>
@@ -217,10 +301,12 @@ export default function Home() {
                   </div>
 
                   <div className="gallery_product card-project filter design">
+                     <a href="https://www.carsu.edu.ph/csu-welcomes-new-president-honors-masts-champions/" target="_blank" rel="noopener noreferrer">
                      <img
-                        src="/events4.png"
+                        src="/events4.jpg"
                         className="img-fluid"
                      />
+                     </a>
                      <div className="overlay">
                         <a href="https://azurakit.vercel.app" target="_blank">
                            <i className="ai-link-out"></i>
@@ -229,10 +315,12 @@ export default function Home() {
                   </div>
 
                   <div className="gallery_product card-project filter design">
+                     <a href="https://www.facebook.com/share/18kYAN7rCB/" target="_blank" rel="noopener noreferrer">
                      <img
-                        src="/events5.png"
+                        src="/events5.jpg"
                         className="img-fluid"
                      />
+                     </a>
                      <div className="overlay">
                         <a href="https://azurakit.vercel.app" target="_blank">
                            <i className="ai-link-out"></i>
@@ -241,10 +329,12 @@ export default function Home() {
                   </div>
 
                   <div className="gallery_product card-project filter design">
+                    <a href="https://www.facebook.com/share/1GqceSrJ1G/" target="_blank" rel="noopener noreferrer">
                      <img
-                       src="/events6.jpg"
+                        src="/events6.jpg"
                         className="img-fluid"
                      />
+                     </a>
                      <div className="overlay">
                         <a href="https://azurakit.vercel.app" target="_blank">
                            <i className="ai-link-out"></i>
@@ -253,10 +343,12 @@ export default function Home() {
                   </div>
 
                   <div className="gallery_product card-project filter design">
+                     <a href="https://www.facebook.com/share/1BNWxkopfq/" target="_blank" rel="noopener noreferrer">
                      <img
-                       src="/events7.jpg"
+                        src="/events7.jpg"
                         className="img-fluid"
                      />
+                     </a>
                      <div className="overlay">
                         <a href="https://azurakit.vercel.app" target="_blank">
                            <i className="ai-link-out"></i>
@@ -265,10 +357,12 @@ export default function Home() {
                   </div>
 
                   <div className="gallery_product card-project filter design">
+                     <a href="https://www.facebook.com/share/p/1Buc42d2A6/" target="_blank" rel="noopener noreferrer">
                      <img
-                       src="/events8.jpg"
+                        src="/events8.jpg"
                         className="img-fluid"
                      />
+                     </a>
                      <div className="overlay">
                         <a href="https://azurakit.vercel.app" target="_blank">
                            <i className="ai-link-out"></i>
@@ -276,10 +370,10 @@ export default function Home() {
                      </div>
                   </div>
                </div>
-            </div>
+            
          </div>
       </section>
-      // END:gallery
+   
 
 
 
@@ -292,115 +386,6 @@ export default function Home() {
 
 
 
-      // START:forms
-      <section id="forms">
-         <div className="container">
-            <div data-aos="fade-up">
-               <p className="text-uppercase text-center heading">forms</p>
-               <h2 className="section-title text-center">template forms</h2>
-            </div>
-            <div className="row">
-               <div
-                  className="col-lg-6 col-12 order-last order-lg-0"
-                  data-aos="fade-up"
-               >
-                  //Form Input Message 
-                  <form className="form" id="whatsapp">
-                     <input className="tujuan" type="hidden" id="noAdmin" />
-                     <div className="form-group mb-3">
-                        <label className="form-label">Name :</label>
-                        <br />
-
-                        <input
-                           className="nama form-control"
-                           type="text"
-                           placeholder="John Doe"
-                        />
-
-                        <span className="focus-input100"></span>
-                     </div>
-                     <div className="form-group mb-3">
-                        <label className="form-label">No Telp :</label>
-                        <br />
-                        <input
-                           className="nowhatsapp form-control"
-                           type="number"
-                           placeholder="+62 894 2400 2399"
-                        />
-                        <span className="focus-input100"></span>
-                     </div>
-                     <div className="form-group mb-3">
-                        <label className="form-label">Message :</label>
-                        <textarea
-                           className="pesan form-control"
-                           rows={3}
-                           placeholder="Enter your message"
-                        ></textarea>
-                        <span className="focus-input100"></span>
-                     </div>
-                     <div className="container-contact100-form-btn mt-2">
-                        <div className="wrap-contact100-form-btn">
-                           <div className="contact100-form-bgbtn"></div>
-                           <a className="btn btn-primary contact100-form-btn submit"
-                              >forms</a>
-                           
-                        </div>
-                     </div>
-                  </form>
-               </div>
-               <div
-                  className="col-lg-6 col-12 content ps-4 mt-lg-4 mt-sm-0 order-first order-lg-0 align-content-center"
-                  data-aos="fade-up"
-                  data-aos-delay="300"
-               >
-                  <address className="d-flex text-dark gap-2">
-                     <i className="ai-location icon"></i>
-                     <p>
-                        Perum Telaga Adem, JL. doang pacaran kga, no 24 <br />
-                        Kab.Bekasi, Kec.Cikarang Barat
-                     </p>
-                  </address>
-                  <ul className="list-unstyled">
-                     <li className="mb-2">
-                        <a
-                           href="#"
-                           className="d-flex align-items-center gap-2 text-decoration-none text-dark"
-                        >
-                           <i className="ai-phone icon"></i>
-                           <span>+62 894 2400 2399</span>
-                        </a>
-                     </li>
-                     <li className="mb-2">
-                        <a
-                           href="#"
-                           className="d-flex align-items-center gap-2 text-decoration-none text-dark"
-                        >
-                           <i className="ai-envelope icon"></i>
-                           <span>example@gmail.com</span>
-                        </a>
-                     </li>
-                  </ul>
-                  <div className="d-flex align-items-center mt-4 gap-2">
-                     <a href="#" className="socmed">
-                        <i className="icon ai-instagram-fill"></i>
-                     </a>
-                     <a href="#" className="socmed">
-                        <i className="icon ai-facebook-fill"></i>
-                     </a>
-                     <a href="#" className="socmed">
-                        <i className="icon ai-dribbble-fill"></i>
-                     </a>
-                     <a href="#" className="socmed">
-                        <i className="icon ai-behance-fill"></i>
-                     </a>
-                     <a href="#" className="socmed">
-                        <i className="icon ai-linkedin-fill"></i>
-                     </a>
-                  </div>
-               </div>
-            </div>
-         </div>
-      </section>
        
 
       

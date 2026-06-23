@@ -1,134 +1,496 @@
 @import "tailwindcss";
 
+
+
 :root {
+
   --background: #ffffff;
+
   --foreground: #171717;
+
   --color-background: var(--background);
+
   --color-foreground: var(--foreground);
+
   --font-sans: var(--font-geist-sans);
+
   --font-mono: var(--font-geist-mono);
+
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+
 
 body {
+
+  overflow-x: hidden; /* Prevents horizontal scrolling */
+
+  max-width: 100vw;   /* Keeps everything strictly inside the viewport */
+
+  margin: 0;
+
+  padding: 0;
+
+  box-sizing: border-box;
+
   background: var(--background);
+
   color: var(--foreground);
+
   font-family: Arial, Helvetica, sans-serif;
+
 }
 
 
-/* gfgf*/
+
+*, *::before, *::after {
+
+  box-sizing: inherit;
+
+}
+
+
+
+@media (prefers-color-scheme: dark) {
+
+  :root {
+
+    --background: #0a0a0a;
+
+    --foreground: #ededed;
+
+  }
+
+}
+
+
+
+
+
+body {
+
+  background: var(--background);
+
+  color: var(--foreground);
+
+  font-family: Arial, Helvetica, sans-serif;
+
+}
+
+
+
+
+
+
 
 /*hero banner image styles*/
+
 .hero.banner-image {
+
   /* 1. DEFINE THE IMAGE */
+
   /* Make sure you put your photo in /public/images/gym-bg.jpg */
-  background-image: url('/csu lib.jpg'); 
-  
+
+  background-image: url('/csu lib.jpg');
+
+ 
+
   /* 2. POSITIONING AND SIZING */
+
   background-size: cover;    /* Scale the image to fill the container */
+
   background-position: center; /* Center the image */
+
   background-repeat: no-repeat; /* Do not tile the image */
-  
+
+ 
+
   /* 3. ENSURE READABILITY (CRUCIAL) */
+
   /* This adds a dark overlay so your white text is easy to read. */
+
   position: relative; /* Needed for the overlay */
+
 }
+
+
 
 /* Create the dark overlay using a ::before pseudo-element */
+
 .hero.banner-image::before {
+
   content: '';
+
   position: absolute;
+
   top: 0;
+
   left: 0;
+
   width: 100%;
+
   height: 100%;
+
   background-color: rgba(0, 0, 0, 0.6); /* 60% black overlay */
+
   z-index: 1; /* Puts the overlay over the image */
+
 }
 
+
+
 /* Make sure your content is ON TOP of the overlay */
+
 .hero.banner-image .container {
+
   position: relative;
+
   z-index: 2; /* Puts the text on top of everything */
+
+  /* Make the container fill the hero and center its content (accounts for fixed navbar height) */
+
+  min-height: calc(100vh - 72px);
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
 }
+
+
+
+.hero.banner-image .content {
+
+  width: min(100%, 1000px);
+
+  padding: 0 1rem;
+
+}
+
+
+
+.hero-logo {
+
+  width: clamp(120px, 18vw, 200px);
+
+  height: auto;
+
+  margin-bottom: 1.5rem;
+
+}
+
+
+
+.hero.banner-image h1,
+
+.hero.banner-image p {
+
+  word-break: break-word;
+
+}
+
+
+
+.hero.banner-image h1 {
+
+  font-size: clamp(2rem, 5vw, 3rem);
+
+  line-height: 1.1;
+
+}
+
+
+
+.hero.banner-image .desc {
+
+  font-size: clamp(0.95rem, 2vw, 1.05rem);
+
+  line-height: 1.6;
+
+}
+
+
+
+@media (max-width: 768px) {
+
+  .hero.banner-image {
+
+    min-height: calc(100vh - 72px);
+
+    padding: 6rem 1rem 3rem;
+
+  }
+
+
+
+  .hero.banner-image .content {
+
+    padding: 0 1.25rem;
+
+  }
+
+
+
+  .hero.banner-image .title {
+
+    font-size: clamp(2rem, 7vw, 2.4rem);
+
+  }
+
+
+
+  .hero.banner-image .desc {
+
+    font-size: 0.95rem;
+
+  }
+
+
+
+  .hero-logo {
+
+    width: clamp(110px, 22vw, 170px);
+
+  }
+
+
+
+  .navbar .container {
+
+    padding-left: 1rem;
+
+    padding-right: 1rem;
+
+  }
+
+
+
+  .navbar-brand img {
+
+    width: 30px !important;
+
+    height: 30px !important;
+
+  }
+
+
+
+  .navbar-toggler {
+
+    border-color: rgba(255,255,255,0.5);
+
+  }
+
+
+
+  .navbar-nav {
+
+    text-align: center;
+
+  }
+
+
+
+  .navbar-nav .nav-item {
+
+    width: 100%;
+
+  }
+
+
+
+  .nav-link {
+
+    padding: 0.75rem 1rem;
+
+  }
+
+
+
+  .hero.banner-image .title {
+
+    font-size: 2rem !important;
+
+  }
+
+
+
+  .hero.banner-image .desc {
+
+    font-size: 0.95rem !important;
+
+  }
+
+}
+
+
+
 
 
 .title {
+
   font-family: var(--font-geist-sans); /* Use the font already in your layout */
+
   font-weight: 700;                   /* Make it bold */
+
   letter-spacing: -1px;               /* Optional: make it look more modern */
+
 }
 
 
-/* -------------- Navbar override styles --------------- */
+
+
+
+/* -------------- Navbar override styles start--------------- */
+
+
 
 /* Force the container to be visible and white */
+
 nav.navbar ul.navbar-nav li.nav-item a.nav-link {
+
     color: #ffffff !important;
+
     opacity: 1 !important;
+
     display: block !important;
+
     visibility: visible !important;
+
     font-size: 16px !important;
+
     text-transform: uppercase !important;
+
 }
+
+
 
 /* Force hover state visibility */
+
 nav.navbar ul.navbar-nav li.nav-item a.nav-link:hover {
-    color: #0d6efd !important;
+
+    color: #299743 !important;
+
 }
+
+
 
 /* 1. Base State: Fully Transparent */
+
 .navbar {
+
   background-color: transparent !important;
+
   transition: background-color 0.4s ease;
+
 }
+
+
 
 /* 2. Scrolled State: Solid Dark */
+
 .navbar.navbar-scrolled {
+
   background-color: #212529 !important; /* Your solid color */
+
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+
 }
+
+
 
 /* 3. Ensure the links stay visible */
+
 .navbar .nav-link {
+
   color: #ffffff !important;
+
 }
 
 
-/* -------------- Navbar override styles --------------- */
+
+
+
+
+
+
+
+/* -------------- Navbar override styles end --------------- */
+
+
+
+/* Fix anchor scrolling with fixed navbar */
+
+#home,
+
+#service,
+
+#about,
+
+#documentation {
+
+  scroll-margin-top: 100px;
+
+}
+
+
 
 /* -------------- Gallery picture styles --------------- */
+
 /* Ensure the wrapper uses a grid layout */
+
 .wrapper {
+
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+
+  /* Adjusts column size automatically based on screen width */
+
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+
   gap: 20px;
+
   width: 100%;
+
 }
 
-/* Ensure each product card is consistent */
+
+
 .gallery_product {
+
   position: relative;
-  height: 250px; /* Force uniform height */
+
+  /* Change height to aspect-ratio to keep it consistent without stretching */
+
+  aspect-ratio: 16 / 9;
+
   overflow: hidden;
+
   border-radius: 8px;
+
 }
+
+
 
 .gallery_product img {
+
   width: 100%;
+
   height: 100%;
-  object-fit: cover; /* Prevents images from stretching */
-  transition: transform 0.3s;
+
+  object-fit: cover;
+
+  transition: transform 0.3s ease;
+
 }
 
+
+
 /* Hover effect */
+
 .gallery_product:hover img {
+
   transform: scale(1.1);
-}
+
+} 
+
