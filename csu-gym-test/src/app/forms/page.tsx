@@ -1,4 +1,5 @@
 "use client";
+import Navbar from '@/components/Navbar';
 import { supabase } from '../../utils/supabase';
 
 import React, { useEffect, useState } from 'react';
@@ -63,7 +64,7 @@ useEffect(() => {
 });
   
   //Sports tryout form
-  const [generalForm, setGeneralForm] = useState({ name: '', degree: '', sport: '', position: '', experience: '', college: '' });
+  const [generalForm, setGeneralForm] = useState({ name: '', studentId: '', degree: '', sport: '', position: '', experience: '', college: '' });
 
   const handleSubmit = async (e: React.FormEvent, formType: string, formData: any) => {
   e.preventDefault();
@@ -104,14 +105,15 @@ useEffect(() => {
         requestor_name: formData.requestorName
       }]);
     } else if (formType === 'Sports Tryouts') {
-      response = await supabase.from('tryout_submissions').insert([{
-        name: formData.name,
-        degree: formData.degree,
-        sport_event: formData.sport,
-        position: formData.position,
-        experience: formData.experience,
-        college: formData.college
-      }
+  response = await supabase.from('tryout_submissions').insert([{
+    name: formData.name,
+    student_id: formData.studentId, // Add this line
+    degree: formData.degree,
+    sport_event: formData.sport,
+    position: formData.position,
+    experience: formData.experience,
+    college: formData.college
+  }
     
     
     ]);
@@ -141,7 +143,11 @@ useEffect(() => {
 };
 
   return (
+    <>
+    <Navbar/>
+
     <div className="container py-5 my-5">
+      
       {/* Page Header */}
       <div className="text-center mb-5" data-aos="fade-up">
         <h1 className="fw-bold" style={{ fontFamily: 'Georgia, serif', color: '#212529' }}>
@@ -184,8 +190,8 @@ useEffect(() => {
       <div className="card shadow border-0 p-4 p-md-5 mx-auto bg-white" style={{ maxWidth: '650px', borderRadius: '12px', backgroundColor: '#ffffff' }} data-aos="fade-up" data-aos-delay="200">
         
         {/* FORM 1: SPORTS EQUIPMENT BORROWING */}
-{activeTab === 'equipment' && (
-  <form onSubmit={(e) => handleSubmit(e, 'Equipment Borrowing', equipmentForm)}>
+    {activeTab === 'equipment' && (
+    <form onSubmit={(e) => handleSubmit(e, 'Equipment Borrowing', equipmentForm)}>
     <h3 className="mb-4 h5 fw-bold text-primary" style={{ fontFamily: 'Georgia, serif' }}>1. UCSR Borrower's Form</h3>
     
     <div className="mb-3">
@@ -242,8 +248,8 @@ useEffect(() => {
     <hr className="text-muted" />
 
     {/* DYNAMIC LIST OF EQUIPMENT ITEMS */}
-<div className="mb-4">
-  <label className="form-label fw-bold text-secondary d-flex justify-content-between align-items-center">
+    <div className="mb-4">
+    <label className="form-label fw-bold text-secondary d-flex justify-content-between align-items-center">
     <span>Borrowed Equipments List</span>
     <button 
       type="button" 
@@ -255,9 +261,9 @@ useEffect(() => {
     >
       + Add Item
     </button>
-  </label>
+    </label>
 
-  {equipmentForm.itemsList.map((item, index) => (
+     {equipmentForm.itemsList.map((item, index) => (
     <div className="row g-2 mb-2 align-items-end" key={index}>
       {/* Equipment Name (col-5) */}
       <div className="col-5">
@@ -328,7 +334,7 @@ useEffect(() => {
       </div>
     </div>
   ))}
-</div>
+      </div>
 
     <button type="submit" className="btn btn-primary w-100 py-2 fw-bold">Submit Request</button>
   </form>
@@ -524,6 +530,11 @@ useEffect(() => {
       <input type="text" className="form-control text-dark bg-light" placeholder="e.g., BS Information Technology" value={generalForm.degree || ''} onChange={(e) => setGeneralForm({...generalForm, degree: e.target.value})} required />
     </div>
 
+    <div className="mb-3">
+  <label className="form-label fw-medium">Student ID Number</label>
+  <input type="text" className="form-control text-dark bg-light" placeholder="e.g., 201-XXXXX" value={generalForm.studentId || ''} onChange={(e) => setGeneralForm({...generalForm, studentId: e.target.value})} required />
+</div>
+
     <div className="row mb-3">
       <div className="col-md-6">
         <label className="form-label fw-medium">Event / Sport</label>
@@ -564,7 +575,17 @@ useEffect(() => {
   </form>
 )}
 
+
       </div>
+      
+      <div className="text-center mt-5 px-3" style={{ maxWidth: '800px', margin: '0 auto' }}>
+          <h6 className="fw-bold text-secondary">UCSR Privacy Notice</h6>
+          <p className="text-muted small" style={{ fontStyle: 'italic' }}>
+            "All personal information contained in any document received or transmitted herein shall be used solely for documentation and processing purposes within the UCSR and shall not be shared with any outside parties, unless with your written consent. Personal information shall be retained and stored by the UCSR within a time period."
+          </p>
+        </div>
     </div>
+    
+    </>
   );
 }

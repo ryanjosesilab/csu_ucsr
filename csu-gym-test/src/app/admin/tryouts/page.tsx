@@ -1,73 +1,95 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaCheck, FaTimes, FaUserShield, FaBan, FaHourglassHalf } from 'react-icons/fa';
+// Ensure this path matches where your supabase client is located
+import { supabase } from '../../../utils/supabase'; 
 
+// 1. Updated Interface to match Supabase database columns
 interface Student {
-  id: string;
+  id: string; // The database row ID
+  student_id: string; // The School ID number we just added
   name: string;
   degree: string;
-  sport: string;
+  sport_event: string; // Matched to Supabase column
   position: string;
+  experience: string;
   college: string;
-  status: 'pending' | 'accepted' | 'rejected'; // Tell TS these are the only 3 allowed statuses
-  assignedTo: string | null;                   // Tell TS this can be a string OR null
+  status: 'pending' | 'accepted' | 'rejected' | null; 
+  assigned_to: string | null; // Matched to Supabase column
 }
 
-
-// 1. Define our initial mock data with the Student[] type attached
-const initialStudents: Student[] = [
-  { id: '1', name: 'John Doe', degree: 'BSIT', sport: 'Basketball', position: 'Point Guard', college: 'CCIS', status: 'pending', assignedTo: null },
-  { id: '2', name: 'Jane Smith', degree: 'BSN', sport: 'Volleyball', position: 'Spiker', college: 'CMNS', status: 'pending', assignedTo: null },
-  { id: '3', name: 'Mike Johnson', degree: 'BSED', sport: 'Basketball', position: 'Center', college: 'CED', status: 'pending', assignedTo: null },
-  { id: '4', name: 'Sarah Wilson', degree: 'BSCE', sport: 'Badminton', position: 'Singles', college: 'CEGS', status: 'pending', assignedTo: null },
-  { id: '5', name: 'Chris Brown', degree: 'BSBA', sport: 'Football', position: 'Goalkeeper', college: 'CAA', status: 'pending', assignedTo: null },
-];
-//yeah
-
-// Define your admins
 const ADMINS = [
-  { id: 'admin_1', name: 'Coach Davis (Admin 1)' },
-  { id: 'admin_2', name: 'Coach Smith (Admin 2)' },
-  { id: 'admin_3', name: 'Coach Johnson (Admin 3)' },
+  { id: 'admin_1', name: 'Coach Jopeter (Admin 1)' },
+  { id: 'admin_2', name: 'Coach Johan (Admin 2)' },
+  { id: 'admin_3', name: 'Coach Kim (Admin 3)' },
 ];
 
 export default function TryoutsAdminPage() {
-  // State to hold all students
-  const [students, setStudents] = useState<Student[]>(initialStudents);
-  
-  // State to track which admin is selected in the dropdown for each row
+  const [students, setStudents] = useState<Student[]>([]);
   const [adminSelections, setAdminSelections] = useState<Record<string, string>>({});
 
-  // Function to handle accepting a student
-  const handleAccept = (studentId: string) => {
-    const selectedAdminId = adminSelections[studentId] || ADMINS[0].id; // Default to Admin 1 if none selected
+  // 2. Fetch data from Supabase on page load
+  useEffect(() => {
+    const fetchStudents = async () => {
+      const { data, error } = await supabase
+        .from('tryout_submissions')
+        .select('*')
+        .order('id', { ascending: false }); // Show newest first
+
+      if (error) {
+        console.error("Error fetching tryouts:", error);
+      } else if (data) {
+        setStudents(data);
+      }
+    };
+
+    fetchStudents();
+  }, []);
+
+  // 3. Update Accept logic to save to database
+  const handleAccept = async (dbId: string) => {
+    const selectedAdminId = adminSelections[dbId] || ADMINS[0].id;
+
+    // Update UI immediately
     setStudents(students.map(student => 
-      student.id === studentId 
-        ? { ...student, status: 'accepted', assignedTo: selectedAdminId } 
-        : student
+      student.id === dbId ? { ...student, status: 'accepted', assigned_to: selectedAdminId } : student
     ));
+
+    // Update Database
+    const { error } = await supabase
+      .from('tryout_submissions')
+      .update({ status: 'accepted', assigned_to: selectedAdminId })
+      .eq('id', dbId);
+
+    if (error) alert("Failed to update database.");
   };
 
-  // Function to handle rejecting a student
-  const handleReject = (studentId: string) => {
+  // 4. Update Reject logic to save to database
+  const handleReject = async (dbId: string) => {
+    // Update UI immediately
     setStudents(students.map(student => 
-      student.id === studentId 
-        ? { ...student, status: 'rejected', assignedTo: null } 
-        : student
+      student.id === dbId ? { ...student, status: 'rejected', assigned_to: null } : student
     ));
+
+    // Update Database
+    const { error } = await supabase
+      .from('tryout_submissions')
+      .update({ status: 'rejected', assigned_to: null })
+      .eq('id', dbId);
+
+    if (error) alert("Failed to update database.");
   };
 
-  // Update dropdown selection state
-  const handleSelectAdmin = (studentId: string, adminId: string) => {
-    setAdminSelections({ ...adminSelections, [studentId]: adminId });
+  const handleSelectAdmin = (dbId: string, adminId: string) => {
+    setAdminSelections({ ...adminSelections, [dbId]: adminId });
   };
 
-  // Filter students into their respective tables
-  const pendingStudents = students.filter(s => s.status === 'pending');
+  // 5. Updated Filters (Note: comparing against 'pending' or null so new entries show up)
+  const pendingStudents = students.filter(s => s.status === 'pending' || !s.status);
   const rejectedStudents = students.filter(s => s.status === 'rejected');
-  const admin1Students = students.filter(s => s.status === 'accepted' && s.assignedTo === 'admin_1');
-  const admin2Students = students.filter(s => s.status === 'accepted' && s.assignedTo === 'admin_2');
-  const admin3Students = students.filter(s => s.status === 'accepted' && s.assignedTo === 'admin_3');
+  const admin1Students = students.filter(s => s.status === 'accepted' && s.assigned_to === 'admin_1');
+  const admin2Students = students.filter(s => s.status === 'accepted' && s.assigned_to === 'admin_2');
+  const admin3Students = students.filter(s => s.status === 'accepted' && s.assigned_to === 'admin_3');
 
   return (
     <div className="space-y-6">
@@ -85,8 +107,9 @@ export default function TryoutsAdminPage() {
           <table className="w-full text-sm text-left text-gray-600">
             <thead className="text-xs text-gray-700 uppercase bg-gray-100">
               <tr>
-                <th className="px-6 py-3">Name</th>
+                <th className="px-6 py-3">Student Info</th>
                 <th className="px-6 py-3">Sport / Position</th>
+                <th className="px-6 py-3">Experience</th>
                 <th className="px-6 py-3">College</th>
                 <th className="px-6 py-3">Assign To Admin</th>
                 <th className="px-6 py-3 text-right">Actions</th>
@@ -98,8 +121,18 @@ export default function TryoutsAdminPage() {
               )}
               {pendingStudents.map(student => (
                 <tr key={student.id} className="border-b hover:bg-gray-50">
-                  <td className="px-6 py-4 font-medium text-gray-900">{student.name}<br/><span className="text-xs text-gray-400">{student.degree}</span></td>
-                  <td className="px-6 py-4">{student.sport}<br/><span className="text-xs text-gray-400">{student.position}</span></td>
+                  {/* ADDED STUDENT ID HERE */}
+                  <td className="px-6 py-4 font-medium text-gray-900">
+                    {student.name}<br/>
+                    <span className="text-xs text-blue-600 font-semibold">{student.student_id}</span><br/>
+                    <span className="text-xs text-gray-400">{student.degree}</span>
+                  </td>
+                  <td className="px-6 py-4">{student.sport_event}<br/><span className="text-xs text-gray-400">{student.position}</span></td>
+                  <td className="px-6 py-4 max-w-[200px]">
+                    <p className="truncate text-xs text-gray-500" title={student.experience}>
+                      {student.experience || "No experience listed"}
+                    </p>
+                  </td>
                   <td className="px-6 py-4">{student.college}</td>
                   <td className="px-6 py-4">
                     <select 
@@ -135,7 +168,7 @@ export default function TryoutsAdminPage() {
           <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 flex items-center justify-between">
             <div className="flex items-center">
               <FaUserShield className="text-blue-500 mr-2" />
-              <h2 className="text-md font-bold text-gray-800">Coach Davis</h2>
+              <h2 className="text-md font-bold text-gray-800">Coach Jopeter</h2>
             </div>
             <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-0.5 rounded-full">{admin1Students.length}</span>
           </div>
@@ -143,8 +176,8 @@ export default function TryoutsAdminPage() {
             {admin1Students.length === 0 && <li className="p-4 text-center text-sm text-gray-500">No students assigned.</li>}
             {admin1Students.map(student => (
               <li key={student.id} className="p-3 hover:bg-gray-50 rounded-md transition-colors">
-                <p className="text-sm font-bold text-gray-900">{student.name}</p>
-                <p className="text-xs text-gray-500">{student.sport} - {student.position}</p>
+                <p className="text-sm font-bold text-gray-900">{student.name} <span className="text-blue-600 text-xs ml-1">({student.student_id})</span></p>
+                <p className="text-xs text-gray-500">{student.sport_event} - {student.position}</p>
               </li>
             ))}
           </ul>
@@ -155,7 +188,7 @@ export default function TryoutsAdminPage() {
           <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 flex items-center justify-between">
             <div className="flex items-center">
               <FaUserShield className="text-teal-500 mr-2" />
-              <h2 className="text-md font-bold text-gray-800">Coach Smith</h2>
+              <h2 className="text-md font-bold text-gray-800">Coach Johan</h2>
             </div>
             <span className="bg-teal-100 text-teal-800 text-xs font-bold px-2.5 py-0.5 rounded-full">{admin2Students.length}</span>
           </div>
@@ -163,8 +196,8 @@ export default function TryoutsAdminPage() {
             {admin2Students.length === 0 && <li className="p-4 text-center text-sm text-gray-500">No students assigned.</li>}
             {admin2Students.map(student => (
               <li key={student.id} className="p-3 hover:bg-gray-50 rounded-md transition-colors">
-                <p className="text-sm font-bold text-gray-900">{student.name}</p>
-                <p className="text-xs text-gray-500">{student.sport} - {student.position}</p>
+                <p className="text-sm font-bold text-gray-900">{student.name} <span className="text-teal-600 text-xs ml-1">({student.student_id})</span></p>
+                <p className="text-xs text-gray-500">{student.sport_event} - {student.position}</p>
               </li>
             ))}
           </ul>
@@ -175,7 +208,7 @@ export default function TryoutsAdminPage() {
           <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 flex items-center justify-between">
             <div className="flex items-center">
               <FaUserShield className="text-indigo-500 mr-2" />
-              <h2 className="text-md font-bold text-gray-800">Coach Johnson</h2>
+              <h2 className="text-md font-bold text-gray-800">Coach Kim</h2>
             </div>
             <span className="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-0.5 rounded-full">{admin3Students.length}</span>
           </div>
@@ -183,8 +216,8 @@ export default function TryoutsAdminPage() {
             {admin3Students.length === 0 && <li className="p-4 text-center text-sm text-gray-500">No students assigned.</li>}
             {admin3Students.map(student => (
               <li key={student.id} className="p-3 hover:bg-gray-50 rounded-md transition-colors">
-                <p className="text-sm font-bold text-gray-900">{student.name}</p>
-                <p className="text-xs text-gray-500">{student.sport} - {student.position}</p>
+                <p className="text-sm font-bold text-gray-900">{student.name} <span className="text-indigo-600 text-xs ml-1">({student.student_id})</span></p>
+                <p className="text-xs text-gray-500">{student.sport_event} - {student.position}</p>
               </li>
             ))}
           </ul>
@@ -202,7 +235,7 @@ export default function TryoutsAdminPage() {
           <table className="w-full text-sm text-left text-gray-600">
             <thead className="text-xs text-gray-700 uppercase bg-gray-100">
               <tr>
-                <th className="px-6 py-3">Name</th>
+                <th className="px-6 py-3">Name & ID</th>
                 <th className="px-6 py-3">Sport</th>
                 <th className="px-6 py-3">College</th>
                 <th className="px-6 py-3">Status</th>
@@ -214,8 +247,11 @@ export default function TryoutsAdminPage() {
               )}
               {rejectedStudents.map(student => (
                 <tr key={student.id} className="border-b hover:bg-gray-50">
-                  <td className="px-6 py-4 font-medium text-gray-900">{student.name}</td>
-                  <td className="px-6 py-4">{student.sport}</td>
+                  <td className="px-6 py-4 font-medium text-gray-900">
+                    {student.name} <br/>
+                    <span className="text-xs text-gray-500">{student.student_id}</span>
+                  </td>
+                  <td className="px-6 py-4">{student.sport_event}</td>
                   <td className="px-6 py-4">{student.college}</td>
                   <td className="px-6 py-4">
                     <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">Rejected</span>
