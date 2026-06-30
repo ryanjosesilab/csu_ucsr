@@ -64,7 +64,7 @@ useEffect(() => {
 });
   
   //Sports tryout form
-  const [generalForm, setGeneralForm] = useState({ name: '', studentId: '', degree: '', sport: '', position: '', experience: '', college: '' });
+  const [generalForm, setGeneralForm] = useState({ name: '', studentId: '', degree: '', sport: '', position: '', experience: '', college: '', contact_number: '' });
 
   const handleSubmit = async (e: React.FormEvent, formType: string, formData: any) => {
   e.preventDefault();
@@ -107,12 +107,13 @@ useEffect(() => {
     } else if (formType === 'Sports Tryouts') {
   response = await supabase.from('tryout_submissions').insert([{
     name: formData.name,
-    student_id: formData.studentId, // Add this line
+    student_id: formData.studentId, 
     degree: formData.degree,
     sport_event: formData.sport,
     position: formData.position,
     experience: formData.experience,
-    college: formData.college
+    college: formData.college,
+    contact_number: formData.contact_number,
   }
     
     
@@ -533,6 +534,11 @@ useEffect(() => {
     <div className="mb-3">
   <label className="form-label fw-medium">Student ID Number</label>
   <input type="text" className="form-control text-dark bg-light" placeholder="e.g., 201-XXXXX" value={generalForm.studentId || ''} onChange={(e) => setGeneralForm({...generalForm, studentId: e.target.value})} required />
+</div>
+
+<div className="mb-3">
+  <label className="form-label fw-medium">Contact Number</label>
+  <input type="text" className="form-control text-dark bg-light" placeholder="e.g., 09XXXXXXXXX" value={generalForm.contact_number || ''} onChange={(e) => setGeneralForm({...generalForm, contact_number: e.target.value})} required />
 </div>
 
     <div className="row mb-3">

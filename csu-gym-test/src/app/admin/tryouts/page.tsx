@@ -1,21 +1,25 @@
 'use client';
-import React, { useState, useEffect } from 'react';
-import { FaCheck, FaTimes, FaUserShield, FaBan, FaHourglassHalf } from 'react-icons/fa';
-// Ensure this path matches where your supabase client is located
-import { supabase } from '../../../utils/supabase'; 
+import React, { useState, useEffect, useCallback } from 'react';
+import { FaCheck, FaTimes, FaUserShield, FaBan, FaHourglassHalf, FaDownload, FaEdit } from 'react-icons/fa';
+import { supabase } from '../../../utils/supabase';
+import Link from 'next/link'; 
+import { FaArchive } from 'react-icons/fa';
+
 
 // 1. Updated Interface to match Supabase database columns
 interface Student {
-  id: string; // The database row ID
-  student_id: string; // The School ID number we just added
+  id: string;
+  student_id: string;
   name: string;
   degree: string;
-  sport_event: string; // Matched to Supabase column
+  sport_event: string;
   position: string;
   experience: string;
   college: string;
   status: 'pending' | 'accepted' | 'rejected' | null; 
-  assigned_to: string | null; // Matched to Supabase column
+  assigned_to: string | null;
+  contact_number?: string;
+  archived?: boolean;
 }
 
 const ADMINS = [
@@ -25,66 +29,128 @@ const ADMINS = [
 ];
 
 export default function TryoutsAdminPage() {
+  const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
   const [adminSelections, setAdminSelections] = useState<Record<string, string>>({});
+  const [expandedExp, setExpandedExp] = useState<Record<string, boolean>>({});
+  
+  // 1. Define fetchStudents FIRST using useCallback
+  const fetchStudents = useCallback(async () => {
+    const { data } = await supabase
+      .from('tryout_submissions')
+      .select('*')
+      .eq('is_archived', false);
 
-  // 2. Fetch data from Supabase on page load
-  useEffect(() => {
-    const fetchStudents = async () => {
-      const { data, error } = await supabase
-        .from('tryout_submissions')
-        .select('*')
-        .order('id', { ascending: false }); // Show newest first
 
-      if (error) {
-        console.error("Error fetching tryouts:", error);
-      } else if (data) {
-        setStudents(data);
-      }
-    };
-
-    fetchStudents();
+    
+    if (data) setStudents(data);
   }, []);
 
-  // 3. Update Accept logic to save to database
-  const handleAccept = async (dbId: string) => {
+  // 2. Use it in useEffect
+  useEffect(() => {
+    fetchStudents();
+    const interval = setInterval(fetchStudents, 15000); 
+    return () => clearInterval(interval);
+  }, [fetchStudents]);
+
+  // 3. Handlers
+  const handleArchiveAll = async () => {
+    if (confirm("Are you sure? This will archive ALL currently visible students.")) {
+      const studentIds = students.map(s => s.id);
+      const { error } = await supabase
+        .from('tryout_submissions')
+        .update({ is_archived: true })
+        .in('id', studentIds);
+
+      if (!error) {
+        setStudents([]); 
+        alert("All students have been archived!");
+      }
+    }
+  };
+
+  const handleArchive = async (id: string) => {
+    const { error } = await supabase
+      .from('tryout_submissions')
+      .update({ is_archived: true })
+      .eq('id', id);
+
+    if (!error) {
+      setStudents(students.filter(s => s.id !== id));
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingStudent) return;
+    const { error } = await supabase
+      .from('tryout_submissions')
+      .update({
+        name: editingStudent.name,
+        sport_event: editingStudent.sport_event,
+        position: editingStudent.position,
+        contact_number: editingStudent.contact_number,
+        college: editingStudent.college
+      })
+      .eq('id', editingStudent.id);
+
+    if (!error) {
+      setStudents(students.map(s => (s.id === editingStudent.id ? editingStudent : s)));
+      setEditingStudent(null);
+    }
+  };
+
+  // Add your other handlers (handleAccept, handleReject, etc.) here...
+ const handleAccept = async (dbId: string) => {
+    console.log("Accept button clicked for ID:", dbId);
+    
+    // Determine which admin is selected for this student
     const selectedAdminId = adminSelections[dbId] || ADMINS[0].id;
 
-    // Update UI immediately
-    setStudents(students.map(student => 
-      student.id === dbId ? { ...student, status: 'accepted', assigned_to: selectedAdminId } : student
-    ));
-
-    // Update Database
+    // 1. Update Database
     const { error } = await supabase
       .from('tryout_submissions')
       .update({ status: 'accepted', assigned_to: selectedAdminId })
       .eq('id', dbId);
 
-    if (error) alert("Failed to update database.");
+    if (error) {
+      alert("Failed to update database.");
+      console.error(error);
+    } else {
+      // 2. Update UI locally so it moves to the coach's roster immediately
+      setStudents(students.map(student => 
+        student.id === dbId 
+          ? { ...student, status: 'accepted', assigned_to: selectedAdminId } 
+          : student
+      ));
+    }
   };
 
-  // 4. Update Reject logic to save to database
+  // 4. Updated Reject logic
   const handleReject = async (dbId: string) => {
-    // Update UI immediately
-    setStudents(students.map(student => 
-      student.id === dbId ? { ...student, status: 'rejected', assigned_to: null } : student
-    ));
+    console.log("Reject button clicked for ID:", dbId);
 
-    // Update Database
+    // 1. Update Database
     const { error } = await supabase
       .from('tryout_submissions')
-      .update({ status: 'rejected', assigned_to: null })
+      .update({ status: 'rejected', assigned_to: null }) // Clear admin assignment
       .eq('id', dbId);
 
-    if (error) alert("Failed to update database.");
+    if (error) {
+      alert("Failed to update database.");
+      console.error(error);
+    } else {
+      // 2. Update UI locally so it moves to the Rejected table immediately
+      setStudents(students.map(student => 
+        student.id === dbId 
+          ? { ...student, status: 'rejected', assigned_to: null } 
+          : student
+      ));
+    }
   };
+  const toggleExperience = (id: string) => setExpandedExp(prev => ({ ...prev, [id]: !prev[id] }));
+  const handleSelectAdmin = (dbId: string, adminId: string) => setAdminSelections({ ...adminSelections, [dbId]: adminId });
 
-  const handleSelectAdmin = (dbId: string, adminId: string) => {
-    setAdminSelections({ ...adminSelections, [dbId]: adminId });
-  };
-
-  // 5. Updated Filters (Note: comparing against 'pending' or null so new entries show up)
+  // Filters
   const pendingStudents = students.filter(s => s.status === 'pending' || !s.status);
   const rejectedStudents = students.filter(s => s.status === 'rejected');
   const admin1Students = students.filter(s => s.status === 'accepted' && s.assigned_to === 'admin_1');
@@ -92,10 +158,40 @@ export default function TryoutsAdminPage() {
   const admin3Students = students.filter(s => s.status === 'accepted' && s.assigned_to === 'admin_3');
 
   return (
+
+    
     <div className="space-y-6">
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold text-gray-800">Sports Tryouts Management</h1>
-      </div>
+      <div className="flex justify-between items-center mb-8 bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+  <div>
+    <h1 className="text-2xl font-bold text-gray-800">Tryout Applications</h1>
+    <p className="text-gray-500 text-sm">Manage incoming student applications</p>
+  </div>
+
+  <div className="flex gap-3">
+    {/* Refresh Button */}
+    <button 
+      onClick={fetchStudents} 
+      className="bg-gray-100 text-gray-700 px-4 py-2 rounded font-bold hover:bg-gray-200 transition"
+    >
+      Refresh
+    </button>
+
+    {/* Archive All Button */}
+    <button 
+      onClick={handleArchiveAll}
+      className="bg-red-600 text-white px-4 py-2 rounded font-bold hover:bg-red-700 transition"
+    >
+      Archive All Visible
+    </button>
+
+    <Link href="/admin/archive">
+  <button className="bg-purple-600 text-white px-4 py-2 rounded font-bold hover:bg-purple-700 transition">
+    View Archive Vault
+  </button>
+</Link>
+  </div>
+</div>
+
 
       {/* TABLE 1: PENDING STUDENTS */}
       <div className="bg-white shadow rounded-lg border-l-4 border-yellow-500 overflow-hidden">
@@ -128,10 +224,23 @@ export default function TryoutsAdminPage() {
                     <span className="text-xs text-gray-400">{student.degree}</span>
                   </td>
                   <td className="px-6 py-4">{student.sport_event}<br/><span className="text-xs text-gray-400">{student.position}</span></td>
-                  <td className="px-6 py-4 max-w-[200px]">
-                    <p className="truncate text-xs text-gray-500" title={student.experience}>
-                      {student.experience || "No experience listed"}
-                    </p>
+                  {/* Clickable Experience Data Cell */}
+                  <td className="px-6 py-4 max-w-[250px] align-top">
+                    {student.experience ? (
+                      <div 
+                        onClick={() => toggleExperience(student.id)} 
+                        className="cursor-pointer group"
+                      >
+                        <p className={`text-xs text-gray-500 transition-all duration-200 ${expandedExp[student.id] ? 'whitespace-pre-wrap break-words' : 'truncate'}`}>
+                          {student.experience}
+                        </p>
+                        <span className="text-[10px] text-blue-500 group-hover:underline mt-1 inline-block">
+                          {expandedExp[student.id] ? 'Show less' : 'Read more'}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-400 italic">No experience listed</span>
+                    )}
                   </td>
                   <td className="px-6 py-4">{student.college}</td>
                   <td className="px-6 py-4">
@@ -172,15 +281,40 @@ export default function TryoutsAdminPage() {
             </div>
             <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-0.5 rounded-full">{admin1Students.length}</span>
           </div>
-          <ul className="divide-y divide-gray-200 p-2">
-            {admin1Students.length === 0 && <li className="p-4 text-center text-sm text-gray-500">No students assigned.</li>}
-            {admin1Students.map(student => (
-              <li key={student.id} className="p-3 hover:bg-gray-50 rounded-md transition-colors">
-                <p className="text-sm font-bold text-gray-900">{student.name} <span className="text-blue-600 text-xs ml-1">({student.student_id})</span></p>
-                <p className="text-xs text-gray-500">{student.sport_event} - {student.position}</p>
+          {admin1Students.map(student => (
+              <li key={student.id} className="p-3 hover:bg-gray-50 rounded-md transition-colors flex justify-between items-center group">
+                <div className="flex-1 min-w-0 pr-4">
+                  <p className="text-sm font-bold text-gray-900">{student.name} <span className="text-blue-600 text-xs ml-1">({student.student_id})</span></p>
+                  <p className="text-xs text-gray-500 font-medium">{student.sport_event} - {student.position}</p>
+                  <p className="text-[10px] text-gray-400 italic truncate mt-1" title={student.experience}>{student.experience}</p>
+                </div>
+
+                <button 
+                    onClick={() => setEditingStudent(student)}
+                    className="text-gray-400 hover:text-green-600 hover:bg-green-50 p-2 rounded-full transition-all duration-200"
+                    title="Edit Student Info"
+                  >
+                    <FaEdit />
+                  </button>
+
+                  <button 
+  onClick={() => handleArchive(student.id)}
+  className="text-gray-400 hover:text-orange-600 p-2 rounded-full"
+  title="Archive Student"
+>
+  <FaArchive />
+</button>
+
+                {/* NEW DOWNLOAD BUTTON */}
+                <button 
+                  onClick={() => window.open(`/print-tryout/${student.id}?t=${new Date().getTime()}`, '_blank')}
+                  className="text-gray-300 hover:text-blue-600 hover:bg-blue-50 p-2 rounded-full transition-all duration-200"
+                  title="Print / Save as PDF"
+                >
+                  <FaDownload />
+                </button>
               </li>
             ))}
-          </ul>
         </div>
 
         {/* TABLE 4: ADMIN 2 ROSTER */}
@@ -198,6 +332,7 @@ export default function TryoutsAdminPage() {
               <li key={student.id} className="p-3 hover:bg-gray-50 rounded-md transition-colors">
                 <p className="text-sm font-bold text-gray-900">{student.name} <span className="text-teal-600 text-xs ml-1">({student.student_id})</span></p>
                 <p className="text-xs text-gray-500">{student.sport_event} - {student.position}</p>
+                <p className="text-[10px] text-gray-400 italic truncate mt-1" title={student.experience}>{student.experience}</p>
               </li>
             ))}
           </ul>
@@ -218,6 +353,7 @@ export default function TryoutsAdminPage() {
               <li key={student.id} className="p-3 hover:bg-gray-50 rounded-md transition-colors">
                 <p className="text-sm font-bold text-gray-900">{student.name} <span className="text-indigo-600 text-xs ml-1">({student.student_id})</span></p>
                 <p className="text-xs text-gray-500">{student.sport_event} - {student.position}</p>
+                <p className="text-[10px] text-gray-400 italic truncate mt-1" title={student.experience}>{student.experience}</p>
               </li>
             ))}
           </ul>
@@ -237,6 +373,7 @@ export default function TryoutsAdminPage() {
               <tr>
                 <th className="px-6 py-3">Name & ID</th>
                 <th className="px-6 py-3">Sport</th>
+                <th className="px-6 py-3">Experience</th>
                 <th className="px-6 py-3">College</th>
                 <th className="px-6 py-3">Status</th>
               </tr>
@@ -252,6 +389,11 @@ export default function TryoutsAdminPage() {
                     <span className="text-xs text-gray-500">{student.student_id}</span>
                   </td>
                   <td className="px-6 py-4">{student.sport_event}</td>
+                  <td className="px-6 py-4 max-w-[200px]">
+                    <p className="truncate text-xs text-gray-500" title={student.experience}>
+                      {student.experience || "No experience listed"}
+                    </p>
+                  </td>
                   <td className="px-6 py-4">{student.college}</td>
                   <td className="px-6 py-4">
                     <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">Rejected</span>
@@ -262,6 +404,95 @@ export default function TryoutsAdminPage() {
           </table>
         </div>
       </div>
+      {/* TV DISPLAY BUTTON */}
+      <div className="mt-12 flex justify-center pb-8">
+        <Link 
+          href="/tryouts-display" 
+          target="_blank" 
+          className="bg-gray-900 hover:bg-black text-white font-bold py-4 px-8 rounded-full shadow-lg transition-transform hover:scale-105 flex items-center gap-2"
+        >
+          📺 Tryouts Student View Page
+        </Link>
+      </div>
+
+              {/* EDIT MODAL POPUP */}
+      {editingStudent && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-2xl">
+            <h2 className="text-xl font-bold mb-4">Edit Student Details</h2>
+            
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">Full Name</label>
+                <input 
+                  type="text" 
+                  value={editingStudent.name} 
+                  onChange={(e) => setEditingStudent({...editingStudent, name: e.target.value})}
+                  className="w-full border rounded p-2 text-sm"
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Sport / Event</label>
+                  <input 
+                    type="text" 
+                    value={editingStudent.sport_event} 
+                    onChange={(e) => setEditingStudent({...editingStudent, sport_event: e.target.value})}
+                    className="w-full border rounded p-2 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Position</label>
+                  <input 
+                    type="text" 
+                    value={editingStudent.position} 
+                    onChange={(e) => setEditingStudent({...editingStudent, position: e.target.value})}
+                    className="w-full border rounded p-2 text-sm"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">College</label>
+                  <input 
+                    type="text" 
+                    value={editingStudent.college} 
+                    onChange={(e) => setEditingStudent({...editingStudent, college: e.target.value})}
+                    className="w-full border rounded p-2 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Contact Number</label>
+                  <input 
+                    type="text" 
+                    value={editingStudent.contact_number || ''} 
+                    onChange={(e) => setEditingStudent({...editingStudent, contact_number: e.target.value})}
+                    className="w-full border rounded p-2 text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-2">
+              <button 
+                onClick={() => setEditingStudent(null)}
+                className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleSaveEdit}
+                className="px-4 py-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
 
     </div>
   );
