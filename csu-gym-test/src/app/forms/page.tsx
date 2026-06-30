@@ -8,6 +8,9 @@ export default function FormsPage() {
   // State to handle active tab switching
   const [activeTab, setActiveTab] = useState<'equipment' | 'gym' | 'dlc' | 'general'>('equipment');
 
+  const [isTryoutActive, setIsTryoutActive] = useState<boolean | null>(null);
+  const [loading, setLoading] = useState(true);
+
   // Form states to track input values
   //Sports Equipment Borrowing form
   const [equipmentForm, setEquipmentForm] = useState({
@@ -20,7 +23,26 @@ export default function FormsPage() {
   typeOthersSpecify: '',
   // This array will hold the dynamic list of items
   itemsList: [{ equipmentName: '', quantity: 1, unit: 'piece' }] 
+
 });
+
+useEffect(() => {
+    const checkTryoutStatus = async () => {
+      const { data, error } = await supabase
+        .from('settings')
+        .select('is_tryout_active')
+        .single();
+
+        console.log("Settings Data:", data);
+      console.log("Settings Error:", error);
+      
+      if (data) {
+        setIsTryoutActive(data.is_tryout_active);
+      }
+      setLoading(false);
+    };
+    checkTryoutStatus();
+  }, []);
 
   //Fitness Gym Session Form
   // 1. All your state declarations go here, one after another
@@ -143,6 +165,10 @@ useEffect(() => {
   }
 };
 
+
+
+  
+
   return (
     <>
     <Navbar/>
@@ -180,11 +206,17 @@ useEffect(() => {
           Drum & Lyre Corps Request
         </button>
         <button 
-          className={`btn px-4 py-2 fw-semibold ${activeTab === 'general' ? 'btn-primary shadow-sm' : 'btn-outline-primary'}`} 
-          onClick={() => setActiveTab('general')}
-        >
-          Sports Tryouts form
-        </button>
+    className={`btn px-4 py-2 fw-semibold ${activeTab === 'general' ? 'btn-primary shadow-sm' : 'btn-outline-primary'}`} 
+    onClick={() => {
+      if (isTryoutActive === false) {
+        alert("Tryouts are currently unavailable.");
+      } else {
+        setActiveTab('general');
+      }
+    }}
+  >
+    {isTryoutActive === false ? "Tryouts (Closed)" : "Sports Tryouts form"}
+  </button>
       </div>
 
       {/* Dynamic Form Display Container */}
@@ -438,7 +470,7 @@ useEffect(() => {
     <h3 className="mb-4 h5 fw-bold text-primary" style={{ fontFamily: 'Georgia, serif' }}>3. Drum and Lyre Corps (DLC) Event Request</h3>
     
     <div className="mb-3">
-      <label className="form-label fw-medium">Name of Student</label>
+      <label className="form-label fw-medium">Full Name</label>
       <input type="text" className="form-control text-dark bg-light" value={dlcForm.studentName} onChange={(e) => setDlcForm({...dlcForm, studentName: e.target.value})} required />
     </div>
 
@@ -518,7 +550,14 @@ useEffect(() => {
 
        {/* FORM 4: SPORTS TRYOUTS FORM */}
 {activeTab === 'general' && (
-  <form onSubmit={(e) => handleSubmit(e, 'Sports Tryouts', generalForm)}>
+  <>
+    {isTryoutActive === false ? (
+      <div className="text-center py-5">
+        <h3 className="text-danger">Tryouts are currently unavailable.</h3>
+        <p>Please check back later during the tryout season.</p>
+      </div>
+    ) : (
+      <form onSubmit={(e) => handleSubmit(e, 'Sports Tryouts', generalForm)}>
     <h3 className="mb-4 h5 fw-bold text-primary" style={{ fontFamily: 'Georgia, serif' }}>4. Sports Tryouts Application Form</h3>
     
     <div className="mb-3">
@@ -579,6 +618,8 @@ useEffect(() => {
 
     <button type="submit" className="btn btn-primary w-100 py-2 fw-bold">Submit Tryout</button>
   </form>
+  )}
+  </>
 )}
 
 

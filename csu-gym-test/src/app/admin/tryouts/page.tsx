@@ -33,6 +33,24 @@ export default function TryoutsAdminPage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [adminSelections, setAdminSelections] = useState<Record<string, string>>({});
   const [expandedExp, setExpandedExp] = useState<Record<string, boolean>>({});
+  const [isTryoutActive, setIsTryoutActive] = useState(true);
+
+  const handleToggleTryouts = async () => {
+    const newState = !isTryoutActive; 
+    
+    const { error } = await supabase
+      .from('settings')
+      .update({ is_tryout_active: newState })
+      .eq('id', 1); // Ensure you have a row with id: 1 in your settings table
+
+    if (!error) {
+      setIsTryoutActive(newState); 
+      alert(`Tryouts are now ${newState ? 'OPEN' : 'CLOSED'}`);
+    } else {
+      alert("Failed to update tryout status.");
+      console.error(error);
+    }
+  };
   
   // 1. Define fetchStudents FIRST using useCallback
   const fetchStudents = useCallback(async () => {
@@ -46,12 +64,22 @@ export default function TryoutsAdminPage() {
     if (data) setStudents(data);
   }, []);
 
+  const fetchTryoutStatus = async () => {
+  const { data } = await supabase
+    .from('settings')
+    .select('is_tryout_active')
+    .single();
+  
+  if (data) setIsTryoutActive(data.is_tryout_active);
+};
+
   // 2. Use it in useEffect
   useEffect(() => {
-    fetchStudents();
-    const interval = setInterval(fetchStudents, 15000); 
-    return () => clearInterval(interval);
-  }, [fetchStudents]);
+  fetchStudents();
+  fetchTryoutStatus(); // <--- Add this line
+  const interval = setInterval(fetchStudents, 15000); 
+  return () => clearInterval(interval);
+}, [fetchStudents]);
 
   // 3. Handlers
   const handleArchiveAll = async () => {
@@ -147,6 +175,19 @@ export default function TryoutsAdminPage() {
       ));
     }
   };
+
+  const toggleTryouts = async (currentState: boolean) => {
+  const { error } = await supabase
+    .from('settings')
+    .update({ is_tryout_active: !currentState })
+    .eq('id', 'your_config_row_id'); // Just one row for your settings
+    
+  if (!error) {
+    alert(`Tryouts are now ${!currentState ? 'ENABLED' : 'DISABLED'}`);
+  }
+};
+
+
   const toggleExperience = (id: string) => setExpandedExp(prev => ({ ...prev, [id]: !prev[id] }));
   const handleSelectAdmin = (dbId: string, adminId: string) => setAdminSelections({ ...adminSelections, [dbId]: adminId });
 
@@ -181,12 +222,23 @@ export default function TryoutsAdminPage() {
       onClick={handleArchiveAll}
       className="bg-red-600 text-white px-4 py-2 rounded font-bold hover:bg-red-700 transition"
     >
-      Archive All Visible
+      Archive All
     </button>
+
+    <button 
+  onClick={handleToggleTryouts}
+  className={`px-4 py-2 rounded font-bold transition text-white ${
+    isTryoutActive 
+      ? 'bg-red-600 hover:bg-red-700' 
+      : 'bg-green-600 hover:bg-green-700'
+  }`}
+>
+  {isTryoutActive ? 'Close Tryouts (Turn OFF)' : 'Open Tryouts (Turn ON)'}
+</button>
 
     <Link href="/admin/archive">
   <button className="bg-purple-600 text-white px-4 py-2 rounded font-bold hover:bg-purple-700 transition">
-    View Archive Vault
+    View Deleted Students
   </button>
 </Link>
   </div>
