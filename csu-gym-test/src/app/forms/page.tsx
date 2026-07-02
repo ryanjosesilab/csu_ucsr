@@ -70,6 +70,7 @@ useEffect(() => {
   fetchGymBookings();
 }, []);
 
+const [dlcFile, setDlcFile] = useState<File | null>(null);
   //Drum and Lyre Corps form
   const [dlcForm, setDlcForm] = useState({
   studentName: '',
@@ -112,7 +113,36 @@ useEffect(() => {
         schedule: formData.schedule,
         is_event_training: formData.isEventTraining === 'Yes'
       }]);
+
+      
     } else if (formType === 'DLC Booking') {
+      let pdfUrl = null;
+
+      // 1. If a file was selected, upload it to Supabase Storage first
+      if (dlcFile) {
+        // Create a unique file name to prevent overwriting
+        const fileExt = dlcFile.name.split('.').pop();
+        const fileName = `dlc_${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('dlc-documents') // We will create this bucket in the next step
+          .upload(fileName, dlcFile);
+
+        if (uploadError) {
+          console.error("Upload error:", uploadError);
+          alert(`Failed to upload PDF: ${uploadError.message}`);
+          return; // Stop the form submission if the upload fails
+        }
+
+        // 2. Get the Public URL of the uploaded file
+        const { data: publicUrlData } = supabase.storage
+          .from('dlc-documents')
+          .getPublicUrl(fileName);
+
+        pdfUrl = publicUrlData.publicUrl;
+      }
+
+      // 3. Insert the text data AND the new pdfUrl into the database
       response = await supabase.from('dlc_request').insert([{
         student_name: formData.studentName,
         contact_number: formData.contactNumber,
@@ -124,9 +154,13 @@ useEffect(() => {
         num_instrumentalists: formData.numInstrumentalists,
         num_dancers: formData.numDancers,
         other_requirements: formData.otherRequirements,
-        requestor_name: formData.requestorName
+        requestor_name: formData.requestorName,
+        status: 'pending', // Explicitly setting pending!
+        pdf_url: pdfUrl    // Saving the link we just generated!
       }]);
-    } else if (formType === 'Sports Tryouts') {
+    }
+    
+    else if (formType === 'Sports Tryouts') {
   response = await supabase.from('tryout_submissions').insert([{
     name: formData.name,
     student_id: formData.studentId, 
@@ -506,20 +540,25 @@ useEffect(() => {
         <input className="form-check-input" type="radio" name="locationType" id="loc-outside" value="Outside Campus" checked={dlcForm.locationType === 'Outside Campus'} onChange={(e) => setDlcForm({...dlcForm, locationType: e.target.value, locationOthersSpecify: ''})} />
         <label className="form-check-label text-dark" htmlFor="loc-outside">Outside Campus</label>
       </div>
-      <div className="form-check form-check-inline">
-        <input className="form-check-input" type="radio" name="locationType" id="loc-others" value="Others" checked={dlcForm.locationType === 'Others'} onChange={(e) => setDlcForm({...dlcForm, locationType: e.target.value})} />
-        <label className="form-check-label text-dark" htmlFor="loc-others">Others</label>
-      </div>
+      
     </div>
 
-    {/* Conditional field if 'Others' location is selected */}
-    {dlcForm.locationType === 'Others' && (
+     {dlcForm.locationType === 'Inside Campus' && (
       <div className="mb-3 bg-white p-2 border rounded" data-aos="fade-down" data-aos-duration="300">
-        <label className="form-label fw-medium small text-danger">Please Specify Location:</label>
-        <input type="text" className="form-control text-dark bg-light" placeholder="Type location details..." value={dlcForm.locationOthersSpecify} onChange={(e) => setDlcForm({...dlcForm, locationOthersSpecify: e.target.value})} required />
+        <label className="form-label fw-medium small text-danger">Specify College/Unit:</label>
+        <input type="text" className="form-control text-dark bg-light" value={dlcForm.locationOthersSpecify} onChange={(e) => setDlcForm({...dlcForm, locationOthersSpecify: e.target.value})} required />
       </div>
     )}
 
+     {dlcForm.locationType === 'Outside Campus' && (
+      <div className="mb-3 bg-white p-2 border rounded" data-aos="fade-down" data-aos-duration="300">
+        <label className="form-label fw-medium small text-danger">Specify Location of the event:</label>
+        <input type="text" className="form-control text-dark bg-light" placeholder="Input location details..." value={dlcForm.locationOthersSpecify} onChange={(e) => setDlcForm({...dlcForm, locationOthersSpecify: e.target.value})} required />
+      </div>
+    )}
+
+    {/* Conditional field if 'Others' location is selected */}
+    
     <hr className="my-4 text-muted" />
 
     {/* Personnel Metrics */}
@@ -542,6 +581,28 @@ useEffect(() => {
     <div className="mb-4">
       <label className="form-label fw-medium">Name of the Requestor</label>
       <input type="text" className="form-control text-dark bg-light" placeholder="Dean, Instructor, or Organization Head" value={dlcForm.requestorName} onChange={(e) => setDlcForm({...dlcForm, requestorName: e.target.value})} required />
+    </div>
+
+    {/* PDF Upload Field */}
+    <div className="mb-4 p-4 border border-gray-300 rounded bg-gray-50">
+      <label className="form-label fw-medium d-block mb-2">
+        Attach Supporting Document (Optional)
+      </label>
+      <input 
+        type="file" 
+        className="form-control text-dark bg-white" 
+        accept="application/pdf" // Restricts file picker to PDFs only
+        onChange={(e) => {
+          if (e.target.files && e.target.files.length > 0) {
+            setDlcFile(e.target.files[0]);
+          } else {
+            setDlcFile(null);
+          }
+        }} 
+      />
+      <small className="text-muted mt-1 d-block">
+        Please upload your formal request letter in PDF format.
+      </small>
     </div>
 
     <button type="submit" className="btn btn-primary w-100 py-2 fw-bold">Request</button>
