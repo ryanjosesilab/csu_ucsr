@@ -135,15 +135,42 @@ const handleArchiveAll = async () => {
 };
 
   return (
-    <div className="p-8">
+    <div className="space-y-6">
+      <div className="flex justify-between items-center mb-8 bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+        
+        <div> <h1 className="text-3xl font-bold mb-2 text-gray-800">DLC Request Management </h1>
+      <p className="text-gray-500 mb-8">Review and manage Drum and Lyre Corps event requests.</p></div>
+
+
+        <div className="flex gap-3">
+        <button 
+      onClick={handleArchiveAll}
+      className="bg-red-600 text-white px-4 py-2 rounded font-bold hover:bg-red-700 transition"
+    >
+      Delete all Requests
+    </button>
+
+    <Link href="/admin/dlc-archive">
+  <button className="bg-purple-600 text-white px-4 py-2 rounded font-bold hover:bg-purple-700 transition">
+    View Deleted Students
+  </button>
+</Link>
+    </div>
+       
+      
+      
+      
+      
+      
+      </div>
 
 
       
-      <h1 className="text-3xl font-bold mb-2 text-gray-800">DLC Request Management </h1> 
+       
 
     
 
-      <p className="text-gray-500 mb-8">Review and manage Drum and Lyre Corps event requests.</p>
+      
       
 
       {/* ================= PENDING TABLE ================= */}
@@ -379,20 +406,7 @@ const handleArchiveAll = async () => {
         </table>
         
       </div>
-      <div className="flex gap-3">
-        <button 
-      onClick={handleArchiveAll}
-      className="bg-red-600 text-white px-4 py-2 rounded font-bold hover:bg-red-700 transition"
-    >
-      Delete all Requests
-    </button>
-
-    <Link href="/admin/dlc-archive">
-  <button className="bg-purple-600 text-white px-4 py-2 rounded font-bold hover:bg-purple-700 transition">
-    View Deleted Students
-  </button>
-</Link>
-    </div>
+      
     </div>
     
   );
