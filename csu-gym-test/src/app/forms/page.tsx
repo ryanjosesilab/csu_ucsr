@@ -536,29 +536,28 @@ const [dlcFile, setDlcFile] = useState<File | null>(null);
         <input className="form-check-input" type="radio" name="locationType" id="loc-inside" value="Inside Campus" checked={dlcForm.locationType === 'Inside Campus'} onChange={(e) => setDlcForm({...dlcForm, locationType: e.target.value, locationOthersSpecify: ''})} />
         <label className="form-check-label text-dark" htmlFor="loc-inside">College/Unit (Inside Campus)</label>
       </div>
-      <div className="form-check form-check-inline">
-        <input className="form-check-input" type="radio" name="locationType" id="loc-outside" value="Outside Campus" checked={dlcForm.locationType === 'Outside Campus'} onChange={(e) => setDlcForm({...dlcForm, locationType: e.target.value, locationOthersSpecify: ''})} />
-        <label className="form-check-label text-dark" htmlFor="loc-outside">Outside Campus</label>
-      </div>
       
+      <div className="form-check form-check-inline">
+        <input className="form-check-input" type="radio" name="locationType" id="loc-outside-campus" value="Outside Campus" checked={dlcForm.locationType === 'Outside Campus'} onChange={(e) => setDlcForm({...dlcForm, locationType: e.target.value})} />
+        <label className="form-check-label text-dark" htmlFor="loc-outside-campus">Outside Campus</label>
+      </div>
     </div>
 
-     {dlcForm.locationType === 'Inside Campus' && (
+    {dlcForm.locationType === 'Inside Campus' && (
       <div className="mb-3 bg-white p-2 border rounded" data-aos="fade-down" data-aos-duration="300">
-        <label className="form-label fw-medium small text-danger">Specify College/Unit:</label>
-        <input type="text" className="form-control text-dark bg-light" value={dlcForm.locationOthersSpecify} onChange={(e) => setDlcForm({...dlcForm, locationOthersSpecify: e.target.value})} required />
+        <label className="form-label fw-medium small text-danger">Specify the college and Unit:</label>
+        <input type="text" className="form-control text-dark bg-light" placeholder="Type details..." value={dlcForm.locationOthersSpecify} onChange={(e) => setDlcForm({...dlcForm, locationOthersSpecify: e.target.value})} required />
       </div>
     )}
 
-     {dlcForm.locationType === 'Outside Campus' && (
-      <div className="mb-3 bg-white p-2 border rounded" data-aos="fade-down" data-aos-duration="300">
-        <label className="form-label fw-medium small text-danger">Specify Location of the event:</label>
-        <input type="text" className="form-control text-dark bg-light" placeholder="Input location details..." value={dlcForm.locationOthersSpecify} onChange={(e) => setDlcForm({...dlcForm, locationOthersSpecify: e.target.value})} required />
-      </div>
-    )}
-
-    {/* Conditional field if 'Others' location is selected */}
     
+    {dlcForm.locationType === 'Outside Campus' && (
+      <div className="mb-3 bg-white p-2 border rounded" data-aos="fade-down" data-aos-duration="300">
+        <label className="form-label fw-medium small text-danger">Please Specify Location:</label>
+        <input type="text" className="form-control text-dark bg-light" placeholder="Type location details..." value={dlcForm.locationOthersSpecify} onChange={(e) => setDlcForm({...dlcForm, locationOthersSpecify: e.target.value})} required />
+      </div>
+    )}
+
     <hr className="my-4 text-muted" />
 
     {/* Personnel Metrics */}
