@@ -242,13 +242,13 @@ const handleArchiveAll = async () => {
 
                 {/* 3. Location */}
                 <td className="p-4">
-                  <span className="bg-gray-200 text-gray-800 px-2 py-1 rounded text-xs font-medium">
-                    {req.location_type}
-                  </span>
-                  {req.location_others_specify && (
-                    <p className="text-xs text-gray-500 mt-1">{req.location_others_specify}</p>
-                  )}
-                </td>
+  <span className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-2 py-1 rounded text-xs font-medium">
+    {req.location_type}
+  </span>
+  {req.location_others_specify && (
+    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{req.location_others_specify}</p>
+  )}
+</td>
 
                 {/* 4. Performers */}
                 <td className="p-4">
@@ -267,20 +267,20 @@ const handleArchiveAll = async () => {
                 {/* 6. Actions */}
                 <td className="p-4 align-middle">
                   <div className="flex justify-center gap-2">
-                    <button 
-                      onClick={() => updateRequest(req.id, { status: 'accepted' })} 
-                      className="bg-green-100 text-green-700 p-2 rounded hover:bg-green-200 hover:text-green-800 transition"
-                      title="Accept"
-                    >
-                      <FaCheck />
-                    </button>
-                    <button 
-                      onClick={() => updateRequest(req.id, { status: 'Rejected', is_archived: true })} 
-                      className="bg-red-100 text-red-700 p-2 rounded hover:bg-red-200 hover:text-red-800 transition"
-                      title="Reject"
-                    >
-                      <FaTimes />
-                    </button>
+                   <button 
+  onClick={() => updateRequest(req.id, { status: 'accepted' })} 
+  className="bg-green-100 dark:bg-green-700/90 text-green-700 dark:text-green-100 p-2 rounded hover:bg-green-200 dark:hover:bg-green-600 transition border border-green-200 dark:border-green-600"
+  title="Accept"
+>
+  <FaCheck />
+</button>
+<button 
+  onClick={() => updateRequest(req.id, { status: 'Rejected', is_archived: true })} 
+  className="bg-red-100 dark:bg-red-700/90 text-red-600 dark:text-red-100 p-2 rounded hover:bg-red-200 dark:hover:bg-red-600 transition border border-red-200 dark:border-red-600"
+  title="Reject"
+>
+  <FaTimes />
+</button>
                   </div>
                 </td>
               </tr>
@@ -314,7 +314,6 @@ const handleArchiveAll = async () => {
             
             {acceptedRequests.map(req => (
                                 <React.Fragment key={req.id}>
-                                  {/* SUMMARY ROW (Clickable) */}
                                   <tr 
                                     className={`cursor-pointer transition-colors ${expandedRows[req.id] ? 'bg-green-50' : 'hover:bg-gray-50'}`} 
                                     onClick={() => toggleExpand(req.id)}
@@ -334,7 +333,6 @@ const handleArchiveAll = async () => {
                   </td>
                 </tr>
 
-                {/* EXPANDED ROW (School Form Format) */}
                 {/* EXPANDED ROW (PDF View) */}
                 {expandedRows[req.id] && (
                   <tr className="bg-gray-50">
