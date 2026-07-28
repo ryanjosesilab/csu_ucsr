@@ -107,6 +107,7 @@ export default function TryoutsDisplayPage() {
         </div>
       </div>
 
+{/* SECTION: ACCEPTED STUDENTS */}
       {/* SECTION: ACCEPTED STUDENTS */}
       <div className="mt-12 bg-white rounded-xl shadow-lg border-t-8 border-green-600 overflow-hidden">
         <div className="bg-green-50 p-6 border-b border-green-200 text-center">
