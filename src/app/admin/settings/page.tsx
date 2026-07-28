@@ -58,7 +58,7 @@ export default function SettingsPage() {
 
   return (
     <div className="p-8 max-w-2xl mx-auto pb-20">
-      <h1 className="text-2xl font-bold mb-6 text-black">System Settings</h1>
+     <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:!text-white">System Settings</h1>
       
       {/* 1. Director Settings */}
       <div className="bg-white p-6 rounded shadow mb-6 border-t-4 border-blue-600">

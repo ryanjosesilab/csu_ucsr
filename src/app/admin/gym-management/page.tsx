@@ -539,9 +539,9 @@ const filteredPendingRequests = pendingRequests.filter(req =>
                         {getTimeStr(req.schedule)}
                       </p>
                     </div>
-                    <span className={`text-[10px] font-bold px-2 py-1 rounded ${isLate ? 'bg-orange-500 text-white' : 'bg-gray-200 text-gray-800'}`}>
-                      {isLate ? 'Overdue / Late' : 'Awaiting Entry'}
-                    </span>
+                    <span className={`text-[10px] font-bold px-2 py-1 rounded ${isLate ? 'bg-orange-500 text-white' : 'bg-gray-200 dark:bg-green-700 text-green-800 dark:text-gray-200'}`}>
+  {isLate ? 'Overdue / Late' : 'Awaiting Entry'}
+</span>
                   </div>
                   
                   <div className="flex gap-2">

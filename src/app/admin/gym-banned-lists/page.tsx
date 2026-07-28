@@ -187,7 +187,7 @@ export default function GymBannedListsPage() {
                       </div>
                       
                       <div>
-                        <p className="font-bold text-black tracking-wide">{student.studentId}</p>
+                        <p className="font-bold text-gray-900 dark:!text-white tracking-wide">{student.studentId}</p>
                         
                         {/* Status changes based on Manual vs Auto */}
                         {student.type === 'Manual' ? (

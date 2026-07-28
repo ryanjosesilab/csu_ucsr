@@ -8,7 +8,7 @@ import Link from "next/link";
 type InventoryLog = {
   id: string;
   borrowerName: string;
-  phone: string;
+  contact_number: string; 
   borrowerType: string;
   purpose: string;
   dateBorrowed: string;
@@ -71,7 +71,6 @@ export default function InventoryManagerPage() {
     const { data, error } = await supabase
       .from("equipment_borrowings")
       .select("*")
-      // CHANGED: Sorts by timestamp descending (newest requests at the very top)
       .order('created_at', { ascending: false }); 
 
     if (error) {
@@ -84,13 +83,10 @@ export default function InventoryManagerPage() {
 
     const mappedLogs: InventoryLog[] = (data || []).map((entry: BorrowingRow) => {
       
-      // UPGRADED: Extracts Name, Quantity, and Unit from the JSON
-     // UPGRADED: Extracts Name, Quantity, and Unit from the JSON
       const items = Array.isArray(entry.items_list)
         ? entry.items_list.map((rawItem) => {
             if (typeof rawItem === "string") return rawItem;
             
-            // FIX: Explicitly tell TypeScript what properties are allowed inside this object
             const item = rawItem as { 
               equipmentName?: string; 
               name?: string; 
@@ -116,14 +112,14 @@ export default function InventoryManagerPage() {
       return {
         id: String(entry.id),
         borrowerName: entry.borrower_name || "Unknown",
-        phone: entry.contact_number || "",
+        contact_number: entry.contact_number || "",
         borrowerType: entry.borrower_type || "Student", 
         purpose: entry.purpose || "",
         dateBorrowed: entry.date_borrowed || "",
         dateReturned: entry.date_return || null,
         items,
         status: status.replace(/['"]+/g, '').trim(),
-        createdAt: entry.created_at || new Date().toISOString(), // Stores the timestamp
+        createdAt: entry.created_at || new Date().toISOString(), 
       };
     });
 
@@ -134,28 +130,24 @@ export default function InventoryManagerPage() {
 
   
   useEffect(() => {
-    // 1. Fetch initially when the page loads
     fetchLogs();
 
-    // 2. Set up the Realtime Subscription listener
     const borrowingChannel = supabase
       .channel('realtime-borrowings')
       .on(
         'postgres_changes',
         {
-          event: '*', // Listens for INSERT, UPDATE, and DELETE
+          event: '*', 
           schema: 'public',
           table: 'equipment_borrowings'
         },
         (payload) => {
           console.log('Real-time update received!', payload);
-          // Refetch the data so the UI stays perfectly in sync
           fetchLogs(); 
         }
       )
       .subscribe();
 
-    // 3. Cleanup the subscription when the admin leaves the page
     return () => {
       supabase.removeChannel(borrowingChannel);
     };
@@ -163,14 +155,11 @@ export default function InventoryManagerPage() {
 
   const handleStatusChange = async (id: string, newStatus: string) => {
     
-    // 1. If Admin Approves, open the Print form in a new tab!
     if (newStatus === "Approved") {
-      // NOTE: Make sure this URL matches your exact folder structure!
-      // If you put the print folder inside admin, use this:
+      
       window.open(`/print-borrowers/${id}`, '_blank');
     }
 
-    // 2. Update the Database
     const { error } = await supabase
       .from("equipment_borrowings")
       .update({ status: newStatus })
@@ -182,7 +171,6 @@ export default function InventoryManagerPage() {
       return;
     }
 
-    // 3. Update the UI Instantly
     setLogs((prevLogs) => prevLogs.map((log) => log.id === id ? { ...log, status: newStatus } : log));
     
     if (newStatus === "Returned") {
@@ -226,7 +214,6 @@ export default function InventoryManagerPage() {
         </p>
       </div>
       
-      {/* Right Content (Button) */}
       <div className="relative z-10">
         <Link href="/admin/borrowers-printhistory">
           <button 
@@ -242,10 +229,9 @@ export default function InventoryManagerPage() {
 
       {/* ================= SECTION 1: PENDING REQUESTS ================= */}
       <section className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-  {/* Changed from blue to gray so dark mode catches it automatically */}
-  <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex items-center">
-    <h2 className="text-lg font-bold text-gray-800">Pending Equipment Requests</h2>
-  </div>
+          <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex items-center">
+            <h2 className="text-lg font-bold text-gray-800">Pending Equipment Requests</h2>
+          </div>
         
         <div className="overflow-x-auto">
           {loading ? (
@@ -268,14 +254,13 @@ export default function InventoryManagerPage() {
                   <tr key={log.id} className="hover:bg-gray-50 transition">
                     <td className="px-6 py-4">
                       <div className="font-bold text-gray-900">{log.borrowerName}</div>
-                      <div className="text-xs text-gray-500">{log.phone}</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">{log.contact_number}</div> {/* <-- CHANGED FROM log.phone */}
                       <div className="mt-1.5 inline-block px-2 py-0.5 bg-indigo-50 text-indigo-700 text-[10px] font-bold rounded uppercase tracking-wider border border-indigo-100">
                         {log.borrowerType}
                       </div>
                     </td>
                     <td className="px-6 py-4">{log.purpose}</td>
                     <td className="px-6 py-4 text-xs font-medium">
-                      {/* NEW: Shows the exact time the request was submitted */}
                       <div className="text-[10px] text-blue-600 font-bold mb-1.5 uppercase tracking-wider">
                         Requested: {new Date(log.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                       </div>
@@ -297,11 +282,10 @@ export default function InventoryManagerPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-center flex justify-center gap-2">
-                      {/* APPROVE BUTTON NOW TRIGGERS PRINT AND MOVES TO CALENDAR */}
                       <button onClick={() => handleStatusChange(log.id, "Approved")} className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded shadow-sm transition">
                         <FaPrint /> Approve & Print
                       </button>
-                      <button onClick={() => handleStatusChange(log.id, "Denied")} className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded shadow-sm transition">
+                      <button onClick={() => handleStatusChange(log.id, "Denied")} className="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded flex items-center text-xs font-bold">
                         <FaTimes /> Reject
                       </button>
                     </td>
@@ -342,7 +326,7 @@ export default function InventoryManagerPage() {
                 
                 const hasBorrowedToday = activeLogs.some(r => r.dateBorrowed === dateStr);
                 
-                // FIX: Green dot only shows on the Exact Due Date, OR Today (if it is overdue)
+              
                 const hasReturnTodayOrOverdue = activeLogs.some(r => {
                   if (!r.dateReturned) return false;
                   
@@ -379,8 +363,6 @@ export default function InventoryManagerPage() {
           </div>
         </section>
 
-        {/* ACTIVE SCHEDULE & RETURN CONFIRMATION */}
-        {/* ACTIVE SCHEDULE & RETURN CONFIRMATION */}
 <section className="lg:col-span-1 bg-white rounded-xl shadow-sm border border-gray-200 flex flex-col h-full overflow-hidden">
   {/* Changed from emerald to gray */}
   <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
@@ -397,19 +379,28 @@ export default function InventoryManagerPage() {
                 {todaysActiveBorrowers.map(log => {
                   const isBorrowToday = log.dateBorrowed === selectedDate;
                   const isDueToday = log.dateReturned === selectedDate;
-                  // NEW: Identify if it's strictly overdue
                   const isOverdue = log.dateReturned && log.dateReturned < selectedDate;
 
                   return (
                     <div key={log.id} className={`bg-white border p-4 rounded-lg shadow-sm ${isOverdue ? 'border-red-300 ring-1 ring-red-50' : 'border-gray-200'}`}>
                       <div className="flex justify-between items-start mb-2">
                         <div>
-                          <p className="font-bold text-gray-900 text-sm">{log.borrowerName}</p>
+                          <div className="flex items-baseline gap-2">
+                            <p className="font-bold text-gray-900 dark:!text-white text-sm m-0">
+                              {log.borrowerName}
+                            </p>
+                            
+                            {log.contact_number && (
+                              <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
+                                {log.contact_number}
+                              </span>
+                            )}
+                          </div>
+
                           <div className="flex gap-1 mt-1 flex-wrap">
-                            {isBorrowToday && <span className="text-[10px] bg-gray-100 text-gray-700 font-bold px-2 py-0.5 rounded uppercase">Borrowed Today</span>}
-                            {isDueToday && <span className="text-[10px] bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded uppercase animate-pulse">Return Due Today</span>}
-                            {/* NEW: Overdue Badge */}
-                            {isOverdue && <span className="text-[10px] bg-red-100 text-red-700 font-bold px-2 py-0.5 rounded uppercase animate-pulse">Overdue</span>}
+                            {isBorrowToday && <span className="text-[10px] bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold px-2 py-0.5 rounded uppercase">Borrowed Today</span>}
+                            {isDueToday && <span className="text-[10px] bg-green-100 dark:bg-green-900/60 text-green-700 dark:text-green-200 font-bold px-2 py-0.5 rounded uppercase animate-pulse">Return Due Today</span>}
+                            {isOverdue && <span className="text-[10px] bg-red-100 dark:bg-red-900/60 text-red-700 dark:text-red-200 font-bold px-2 py-0.5 rounded uppercase animate-pulse">Overdue</span>}
                           </div>
                         </div>
                       </div>

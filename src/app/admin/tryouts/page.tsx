@@ -297,7 +297,7 @@ export default function TryoutsAdminPage() {
         <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex items-center justify-between">
           <div className="flex items-center">
             <FaUserShield className="text-green-600 mr-2 text-lg" />
-            <h2 className="text-lg font-bold text-gray-800">Accepted Students Roster</h2>
+            <h2 className="text-lg font-bold text-gray-800">Accepted Students</h2>
           </div>
           <span className="bg-green-100 text-green-800 text-xs font-bold px-3 py-1 rounded-full">{acceptedStudents.length} Accepted</span>
         </div>
@@ -348,28 +348,28 @@ export default function TryoutsAdminPage() {
                   <td className="px-6 py-4 text-center">
                     <div className="flex items-center justify-center gap-1">
                       <button 
-                        onClick={() => setEditingStudent(student)}
-                        className="text-gray-400 hover:text-green-600 hover:bg-green-50 p-2 rounded-full transition-all duration-200"
-                        title="Edit Student Info"
-                      >
-                        <FaEdit />
-                      </button>
+  onClick={() => setEditingStudent(student)}
+  className="text-gray-400 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/60 p-2 rounded-full transition-all duration-200"
+  title="Edit Student Info"
+>
+  <FaEdit />
+</button>
 
-                      <button 
-                        onClick={() => handleArchive(student.id)}
-                        className="text-gray-400 hover:text-orange-600 hover:bg-orange-50 p-2 rounded-full transition-all duration-200"
-                        title="Archive Student"
-                      >
-                        <FaArchive />
-                      </button>
+<button 
+  onClick={() => handleArchive(student.id)}
+  className="text-gray-400 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-300 hover:bg-orange-50 dark:hover:bg-orange-900/60 p-2 rounded-full transition-all duration-200"
+  title="Archive Student"
+>
+  <FaArchive />
+</button>
 
-                      <button 
-                        onClick={() => window.open(`/print-tryout/${student.id}?t=${new Date().getTime()}`, '_blank')}
-                        className="text-gray-400 hover:text-blue-600 hover:bg-blue-50 p-2 rounded-full transition-all duration-200"
-                        title="Print / Save as PDF"
-                      >
-                        <FaDownload />
-                      </button>
+<button 
+  onClick={() => window.open(`/print-tryout/${student.id}?t=${new Date().getTime()}`, '_blank')}
+  className="text-gray-400 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/60 p-2 rounded-full transition-all duration-200"
+  title="Print / Save as PDF"
+>
+  <FaDownload />
+</button>
                     </div>
                   </td>
                 </tr>

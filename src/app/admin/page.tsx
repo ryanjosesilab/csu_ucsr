@@ -115,7 +115,7 @@ export default function AdminDashboard() {
   return (
     <div className="pb-10">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-black">UCSR Dashboard</h1>
+       <h1 className="text-2xl font-bold text-gray-900 dark:!text-white">UCSR Dashboard</h1>
         
       </div>
 
