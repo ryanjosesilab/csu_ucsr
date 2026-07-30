@@ -1,5 +1,3 @@
-
-/* Navbar container - ensure it's on top */
 .navbar {
   position: relative;
   z-index: 1001;

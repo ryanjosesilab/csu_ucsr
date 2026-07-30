@@ -11,17 +11,14 @@ export default function FormsPage() {
   const [isTryoutActive, setIsTryoutActive] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Form states to track input values
-  //Sports Equipment Borrowing form
   const [equipmentForm, setEquipmentForm] = useState({
     borrowerName: '',
     contactNumber: '',
     purpose: '',
     dateBorrowed: '',
     dateReturn: '',
-    borrowerType: 'Student', // Default selection
+    borrowerType: 'Student', 
     typeOthersSpecify: '',
-    // This array will hold the dynamic list of items
     itemsList: [{ equipmentName: '', quantity: 1, unit: 'piece' }] 
   });
 

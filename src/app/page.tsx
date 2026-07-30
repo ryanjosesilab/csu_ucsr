@@ -249,7 +249,7 @@ export default function Home() {
               data-aos-duration="800"
             >
               <h2
-                className="section-title"
+                className="section-title text-center"
                 style={{ fontFamily: "'CMU Serif', serif" }}
               >
                 University Center for Sports and Recreation

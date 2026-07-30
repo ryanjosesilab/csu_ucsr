@@ -3,7 +3,6 @@ import { useState } from 'react';
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
 
-// Ensure you have "default" here
 export default function ExpandableImage({ src, className }: { src: string, className?: string }) {
   const [open, setOpen] = useState(false);
 
@@ -13,17 +12,17 @@ export default function ExpandableImage({ src, className }: { src: string, class
         <img src={src} className={className} />
       </div>
       <Lightbox
-  open={open}
-  close={() => setOpen(false)}
-  slides={[{ src }]}
-  // This disables the infinite "looping" behavior
-  carousel={{ finite: true }} 
-  // This explicitly hides the buttons if there is only 1 slide
-  render={{ 
-    buttonPrev: () => null, 
-    buttonNext: () => null 
-  }}
-/>
+        open={open}
+        close={() => setOpen(false)}
+        slides={[{ src }]}
+        carousel={{ finite: true }} 
+        render={{ 
+          buttonPrev: () => null, 
+          buttonNext: () => null 
+        }}
+        // ADDED: Forces the lightbox to always render on top of your fixed navbar
+       styles={{ root: { zIndex: 99999 } }}
+      />
     </>
   );
 }
