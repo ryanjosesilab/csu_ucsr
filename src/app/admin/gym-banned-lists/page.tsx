@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../../utils/supabase'; 
 import { FaBan, FaUnlock, FaPlus, FaSearch, FaClock } from 'react-icons/fa';
 
-// Create a type so TypeScript knows we have two kinds of bans now
 type BannedStudent = {
   studentId: string;
   type: 'Manual' | 'Auto';
@@ -19,7 +18,6 @@ export default function GymBannedListsPage() {
   const fetchBannedList = async () => {
     setIsLoading(true);
     
-    // 1. Fetch Manual Bans (From Settings)
     const { data: settings } = await supabase
       .from('settings')
       .select('banned_gym_students')
@@ -31,12 +29,11 @@ export default function GymBannedListsPage() {
       type: 'Manual'
     }));
 
-    // 2. Fetch Auto Bans (From Students - ONLY active ones!)
     const now = new Date().toISOString();
     const { data: students } = await supabase
       .from('students')
       .select('student_id, banned_until')
-      .gt('banned_until', now); // This automatically ignores bans that have expired!
+      .gt('banned_until', now); 
 
     const autoBans: BannedStudent[] = (students || []).map((s) => ({
       studentId: s.student_id,
@@ -44,7 +41,6 @@ export default function GymBannedListsPage() {
       expiresAt: s.banned_until
     }));
 
-    // Combine them into one master list
     setBannedList([...manualBans, ...autoBans]);
     setIsLoading(false);
   };
@@ -64,7 +60,6 @@ export default function GymBannedListsPage() {
       return;
     }
 
-    // Always add manual bans to the settings table
     const { data: settings } = await supabase.from('settings').select('banned_gym_students').eq('id', 1).single();
     const currentManuals = settings?.banned_gym_students || [];
     const updatedList = [...currentManuals, idToAdd];
@@ -73,7 +68,7 @@ export default function GymBannedListsPage() {
 
     if (!error) {
       setNewStudentId(''); 
-      fetchBannedList(); // Refresh the list
+      fetchBannedList(); 
     } else {
       alert("Failed to update database.");
       console.error(error);
@@ -84,17 +79,14 @@ export default function GymBannedListsPage() {
     if (!confirm(`Are you sure you want to unban Student ID: ${student.studentId}?`)) return;
 
     if (student.type === 'Manual') {
-      // Remove from settings table
       const { data: settings } = await supabase.from('settings').select('banned_gym_students').eq('id', 1).single();
       const updatedList = (settings?.banned_gym_students || []).filter((id: string) => id !== student.studentId);
       await supabase.from('settings').update({ banned_gym_students: updatedList }).eq('id', 1);
       
     } else if (student.type === 'Auto') {
-      // Remove from students table by setting banned_until to null
       await supabase.from('students').update({ banned_until: null }).eq('student_id', student.studentId);
     }
 
-    // Refresh the UI
     fetchBannedList();
   };
 
@@ -105,7 +97,6 @@ export default function GymBannedListsPage() {
   return (
     <div className="p-8 max-w-4xl mx-auto space-y-8">
       
-      {/* HEADER */}
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex items-center gap-4">
         <div className="p-4 bg-red-100 text-red-600 rounded-full">
           <FaBan className="text-2xl" />
@@ -118,7 +109,6 @@ export default function GymBannedListsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         
-        {/* LEFT COLUMN: ADD NEW BAN */}
         <div className="md:col-span-1">
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 sticky top-8">
             <h2 className="font-bold text-gray-800 mb-4 text-lg">Manually Ban Gym Users</h2>
@@ -146,10 +136,8 @@ export default function GymBannedListsPage() {
           </div>
         </div>
 
-        {/* RIGHT COLUMN: THE BANNED LIST */}
         <div className="md:col-span-2 space-y-4">
           
-          {/* Search & Counter */}
           <div className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm border border-gray-200">
             <div className="flex items-center gap-2 flex-1">
               <FaSearch className="text-gray-400" />
@@ -166,7 +154,6 @@ export default function GymBannedListsPage() {
             </span>
           </div>
 
-          {/* The List */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
             {isLoading ? (
               <div className="p-8 text-center text-gray-500">Loading list...</div>
@@ -178,10 +165,9 @@ export default function GymBannedListsPage() {
             ) : (
               <ul className="divide-y divide-gray-100">
                 {filteredList.map((student) => (
-                  <li key={`${student.type}-${student.studentId}`} className="p-4 flex items-center justify-between hover:bg-gray-800 transition group">
-                    <div className="flex items-center gap-4">
+                  <li key={`${student.type}-${student.studentId}`} className="p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition group">
+      <div className="flex items-center gap-4">
                       
-                      {/* Icon changes based on Manual vs Auto */}
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center ${student.type === 'Manual' ? 'bg-red-50 text-red-500' : 'bg-orange-50 text-orange-500'}`}>
                         {student.type === 'Manual' ? <FaBan /> : <FaClock />}
                       </div>
@@ -189,7 +175,6 @@ export default function GymBannedListsPage() {
                       <div>
                         <p className="font-bold text-gray-900 dark:!text-white tracking-wide">{student.studentId}</p>
                         
-                        {/* Status changes based on Manual vs Auto */}
                         {student.type === 'Manual' ? (
                           <p className="text-xs text-red-500 font-bold uppercase tracking-wider">Permanent Ban</p>
                         ) : (
@@ -202,12 +187,12 @@ export default function GymBannedListsPage() {
                     </div>
                     
                     <button 
-                      onClick={() => handleUnban(student)}
-                      className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-gray-500 border border-gray-300 rounded hover:bg-gray-500 hover:bg-gray-500 hover:bg-gray-500 transition"
-                      title="Remove ban"
-                    >
-                      <FaUnlock /> Unban
-                    </button>
+        onClick={() => handleUnban(student)}
+        className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-gray-500 dark:text-gray-400 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-gray-200 transition"
+        title="Remove ban"
+      >
+        <FaUnlock /> Unban
+      </button>
                   </li>
                 ))}
               </ul>
