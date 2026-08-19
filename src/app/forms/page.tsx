@@ -910,8 +910,6 @@ export default function FormsPage() {
     value={generalForm.name || ''} 
     maxLength={30} // 1. Limit to 30 characters
     onChange={(e) => {
-      // 2. This regex allows: Letters (a-z, A-Z), Spaces (\s), Hyphens (\-), and Apostrophes (')
-      // It instantly deletes numbers and any other special characters.
       const sanitizedValue = e.target.value.replace(/[^a-zA-Z\s\-']/g, '');
       setGeneralForm({...generalForm, name: sanitizedValue});
     }} 
@@ -920,7 +918,7 @@ export default function FormsPage() {
 </div>
 
     <div className="mb-3">
-  <label className="form-label fw-medium">Degree / Course</label>
+  <label className="form-label fw-medium">Program / Course</label>
   <input 
     type="text" 
     className="form-control text-dark bg-light" 
@@ -977,7 +975,7 @@ export default function FormsPage() {
       className="form-control text-dark bg-light" 
       placeholder="e.g., Basketball" 
       value={generalForm.sport || ''} 
-      maxLength={30} // Limit to 30 chars
+      maxLength={30} 
       onChange={(e) => {
         const val = e.target.value;
         if (/^[A-Za-z\s0-9,]*$/.test(val)) {
@@ -996,7 +994,7 @@ export default function FormsPage() {
       className="form-control text-dark bg-light" 
       placeholder="e.g., Point Guard" 
       value={generalForm.position || ''} 
-      maxLength={30} // Limit to 30 chars
+      maxLength={30} 
       onChange={(e) => {
         const val = e.target.value;
         if (/^[A-Za-z\s0-9,]*$/.test(val)) {

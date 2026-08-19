@@ -36,7 +36,7 @@ export default function LoginPage() {
       
       <div className="mb-12 flex justify-center relative">
         <img 
-          src="/logo3.png" 
+          src="/csu-logo-official.png" 
           alt="UCSR Logo" 
           className="h-62 w-auto object-contain z-10 animate-fire-flicker"
         />

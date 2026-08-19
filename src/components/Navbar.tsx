@@ -39,7 +39,7 @@ export default function Navbar() {
           onClick={handleNavClick}
         >
           <img
-            src="/logo3.png"
+            src="/csu-logo-official.png"
             alt="CSU Sports Logo"
             style={{ width: "40px", height: "40px" }}
           />

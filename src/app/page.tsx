@@ -15,7 +15,7 @@ export default function Home() {
         <div className="container min-vh-100 d-flex justify-content-center align-items-center">
           <div className="content text-center">
             <img
-              src="/logo3.png"
+              src="/csu-logo-official.png"
               alt="CSU Sports Logo"
               className="hero-logo mx-auto d-block"
               data-aos="zoom-in"
@@ -86,7 +86,7 @@ export default function Home() {
             >
               <div className="card h-100">
                 <img
-                  src="/sports equipment.png"
+                  src="/csu-logo-official.png"
                   className="mx-auto mt-4"
                   alt="..."
                 />

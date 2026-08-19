@@ -517,12 +517,12 @@ export default function TryoutsAdminPage() {
             </div>
 
             <div className="mt-6 flex justify-end gap-2">
-              <button 
-                onClick={() => setEditingStudent(null)}
-                className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded"
-              >
-                Cancel
-              </button>
+              <button
+  onClick={() => setEditingStudent(null)}
+  className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white rounded transition"
+>
+  Cancel
+</button>
               <button 
                 onClick={handleSaveEdit}
                 className="px-4 py-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded"

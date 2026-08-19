@@ -29,7 +29,7 @@ export default function Sidebar() {
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
     if (!error) {
-      router.push("/");
+      router.push("/login");
     } else {
       console.error("Error logging out:", error.message);
     }
@@ -46,7 +46,7 @@ export default function Sidebar() {
       >
         <div className="relative flex justify-center">
           <img
-            src="/logo3.png"
+            src="/csu-logo-official.png"
             alt="UCSR Logo"
             className="h-48 w-auto object-contain animate-fire-flicker relative z-10"
           />
@@ -172,7 +172,6 @@ export default function Sidebar() {
           </div>
         )}
 
-        {/* --- THEME TOGGLE --- */}
         <div className="mt-4 border-t border-white/10 pt-2">
           <button
             onClick={toggleTheme}
@@ -197,7 +196,6 @@ export default function Sidebar() {
           </button>
         </div>
 
-        {/* --- USER PROFILE & LOGOUT (PLACED DIRECTLY BELOW THEME) --- */}
         <div
           className="mt-2 p-4 border-t border-b border-white/10 flex items-center justify-between"
           style={{
@@ -210,9 +208,9 @@ export default function Sidebar() {
             <FaUserCircle className="text-3xl text-white/80" />
             <div>
               <p className="text-xs font-bold text-white uppercase tracking-wide">
-                Admin User
+                Admin UCSR
               </p>
-              <p className="text-[10px] text-white/60">admin@ucsr.edu</p>
+              <p className="text-[10px] text-white/60">systemadmin@ucsr.edu.ph</p>
             </div>
           </div>
 

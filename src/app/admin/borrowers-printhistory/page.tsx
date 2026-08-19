@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { supabase } from "../../../utils/supabase";
-import { FaHistory, FaSearch, FaTrash, FaDownload, FaArrowLeft, FaFilter } from "react-icons/fa";
+import { FaHistory, FaSearch, FaUndo, FaDownload, FaArrowLeft, FaFilter } from "react-icons/fa"; // Swapped FaTrash for FaUndo
 import Link from "next/dist/client/link";
 
 type InventoryLog = {
@@ -39,7 +39,6 @@ export default function EquipmentHistoryPage() {
   const fetchHistoryLogs = async () => {
     setLoading(true);
 
-    // UPDATED: Now fetches Approved, Returned, and Denied
     const { data, error } = await supabase
       .from("equipment_borrowings")
       .select("*")
@@ -78,48 +77,44 @@ export default function EquipmentHistoryPage() {
     fetchHistoryLogs();
   }, []);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to permanently delete this record? This action cannot be undone.")) return;
+  // NEW: handleRetrieve function
+  const handleRetrieve = async (id: string) => {
+    if (!confirm("Are you sure you want to move this record back to Pending Requests?")) return;
 
     const { error } = await supabase
       .from("equipment_borrowings")
-      .delete()
+      .update({ status: 'Pending' }) // Changes status back to Pending
       .eq("id", id);
 
     if (error) {
-      console.error("Error deleting record:", error);
-      alert("Failed to delete record.");
+      console.error("Error retrieving record:", error);
+      alert("Failed to retrieve record.");
     } else {
+      // Remove it from the history list since it is now Pending again
       setLogs(prev => prev.filter(log => log.id !== id));
     }
   };
 
-  // --- DYNAMIC YEAR EXTRACTION ---
-  // Looks at all dates, extracts the YYYY part, removes duplicates, and sorts descending
+  
   const availableYears = Array.from(new Set(logs.map(log => {
     if (!log.dateBorrowed) return "";
     return log.dateBorrowed.split("-")[0]; 
   }))).filter(Boolean).sort((a, b) => Number(b) - Number(a));
 
-  // --- MASTER FILTERING LOGIC ---
   const filteredLogs = logs.filter(log => {
     // 1. Search Query
     const matchesSearch = log.borrowerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           log.purpose.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           log.dateBorrowed.includes(searchQuery);
 
-    // 2. Status Dropdown
     const matchesStatus = statusFilter === "All" || log.status.toLowerCase() === statusFilter.toLowerCase();
     
-    // 3. Year Dropdown
     const logYear = log.dateBorrowed ? log.dateBorrowed.split("-")[0] : "";
     const matchesYear = yearFilter === "All" || logYear === yearFilter;
 
-    // Must pass ALL filters to show up on the screen
     return matchesSearch && matchesStatus && matchesYear;
   });
 
-  // Helper for status badge colors
   const getStatusColor = (status: string) => {
     const s = status.toLowerCase();
     if (s === 'returned') return "bg-emerald-100 text-emerald-800";
@@ -143,13 +138,10 @@ export default function EquipmentHistoryPage() {
         </div>
       </div>
 
-      {/* SEARCH AND TABLE CONTAINER */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         
-        {/* --- NEW: SEARCH & FILTERS BAR --- */}
         <div className="p-4 border-b border-gray-100 bg-gray-50 flex flex-col lg:flex-row items-center gap-3">
           
-          {/* Search Box */}
           <div className="flex items-center gap-3 flex-1 w-full bg-white px-3 py-2.5 border border-gray-200 rounded-lg focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition shadow-sm">
             <FaSearch className="text-gray-400" />
             <input 
@@ -161,7 +153,6 @@ export default function EquipmentHistoryPage() {
             />
           </div>
 
-          {/* Dropdown Filters */}
           <div className="flex items-center gap-2 w-full lg:w-auto">
             <FaFilter className="text-gray-400 ml-1 hidden lg:block" />
             
@@ -189,7 +180,6 @@ export default function EquipmentHistoryPage() {
           </div>
         </div>
 
-        {/* Table */}
         <div className="overflow-x-auto">
           {loading ? (
             <div className="p-12 text-center text-gray-500 font-medium">Loading history...</div>
@@ -247,13 +237,13 @@ export default function EquipmentHistoryPage() {
                     </td>
                     
                     <td className="px-6 py-4 text-center">
-                      <button 
-                        onClick={() => handleDelete(log.id)}
-                        className="p-2 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded transition"
-                        title="Delete Record"
-                      >
-                        <FaTrash />
-                      </button>
+                     <button 
+  onClick={() => handleRetrieve(log.id)}
+  className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-gray-700 dark:hover:text-blue-400 rounded transition mx-auto block"
+  title="Retrieve to Pending"
+>
+  <FaUndo />
+</button>
                     </td>
 
                   </tr>

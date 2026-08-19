@@ -23,9 +23,41 @@ const REJECT_REASONS = [
 
 export default function GymManagementPage() {
   const [pendingSearchQuery, setPendingSearchQuery] = useState("");
+  const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'month'>('all');
   const [requests, setRequests] = useState<GymBooking[]>([]);
   const [rejectFeedback, setRejectFeedback] = useState<Record<number, string>>({});
   const [activePanelTab, setActivePanelTab] = useState<'timeline' | 'attendance'>('timeline');
+
+  // NEW: State for editing time
+  const [editingScheduleId, setEditingScheduleId] = useState<number | null>(null);
+  const [editedTime, setEditedTime] = useState<string>("");
+
+  // NEW: Function to save the edited time
+  const handleSaveTime = async (id: number, oldSchedule: string) => {
+    try {
+      const d = new Date(oldSchedule);
+      const [hours, minutes] = editedTime.split(':');
+      d.setHours(Number(hours), Number(minutes), 0, 0);
+      const newScheduleIso = d.toISOString();
+
+      const { error } = await supabase
+        .from('gym_bookings')
+        .update({ schedule: newScheduleIso })
+        .eq('id', id);
+
+      if (!error) {
+        // Update local state to reflect change immediately without waiting for Realtime
+        setRequests(prev => prev.map(req => req.id === id ? { ...req, schedule: newScheduleIso } : req));
+        setEditingScheduleId(null);
+      } else {
+        console.error(error);
+        alert("Failed to update time.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Invalid time format.");
+    }
+  };
   
   const getLocalToday = () => {
     const d = new Date();
@@ -251,22 +283,50 @@ export default function GymManagementPage() {
   const sortedHours = Object.keys(hourlySlots)
     .map(Number)
     .filter(hour => {
-      // 1. If the selected date is in the past, hide all hourly slots entirely
       if (selectedDate < todayStr) return false;
       
-      // 2. If the selected date is in the future, show all scheduled slots
       if (selectedDate > todayStr) return true;
       
-      // 3. If it is TODAY, only show the slot if the current hour hasn't passed the end time.
-      // Example: For 9:00 AM slot (hour = 9), it ends at 10. 
-      // If current time is 10:01 AM (currentHour = 10), then 10 < 10 is false -> It gets hidden!
+     
       return currentHour < hour + 1;
     })
     .sort((a, b) => a - b);
 
-const filteredPendingRequests = pendingRequests.filter(req => 
-  req.student_id?.toLowerCase().includes(pendingSearchQuery.toLowerCase())
-);
+const filteredPendingRequests = pendingRequests.filter(req => {
+    // 1. Check if it matches the Search ID
+    const matchesSearch = req.student_id?.toLowerCase().includes(pendingSearchQuery.toLowerCase());
+    if (!matchesSearch) return false;
+
+    // 2. Check if it matches the Date Filter
+    if (dateFilter === 'all') return true;
+
+    const reqDate = new Date(req.schedule);
+    const now = new Date();
+
+    if (dateFilter === 'today') {
+      return reqDate.toDateString() === now.toDateString();
+    }
+
+    if (dateFilter === 'week') {
+      // Get the Sunday of the current week
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - now.getDay());
+      startOfWeek.setHours(0, 0, 0, 0);
+
+      // Get the Saturday of the current week
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6);
+      endOfWeek.setHours(23, 59, 59, 999);
+
+      return reqDate >= startOfWeek && reqDate <= endOfWeek;
+    }
+
+    if (dateFilter === 'month') {
+      return reqDate.getMonth() === now.getMonth() && reqDate.getFullYear() === now.getFullYear();
+    }
+
+    return true;
+  });
 
 
   return (
@@ -303,18 +363,31 @@ const filteredPendingRequests = pendingRequests.filter(req =>
     </div>
 
       <section className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
-  {/* Changed bg-blue-50 and border-blue-100 to standard gray classes */}
   <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-    {/* Changed text-blue-800 to text-gray-800 */}
     <h2 className="text-lg font-bold text-gray-800">1. Pending Gym Requests</h2>
-    
-    <input
-      type="text"
-      placeholder="Search ID Number..."
-      className="border border-gray-300 rounded px-3 py-1.5 text-sm w-64 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-      value={pendingSearchQuery}
-      onChange={(e) => setPendingSearchQuery(e.target.value)}
-    />
+
+    <div className="flex items-center gap-3">
+      
+      {/* NEW: Date Filter Dropdown */}
+      <select
+        value={dateFilter}
+        onChange={(e) => setDateFilter(e.target.value as 'all' | 'today' | 'week' | 'month')}
+        className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white text-gray-700 cursor-pointer"
+      >
+        <option value="all">All Dates</option>
+        <option value="today">Today</option>
+        <option value="week">This Week</option>
+        <option value="month">This Month</option>
+      </select>
+
+      <input
+        type="text"
+        placeholder="Search ID Number..."
+        className="border border-gray-300 rounded px-3 py-1.5 text-sm w-64 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+        value={pendingSearchQuery}
+        onChange={(e) => setPendingSearchQuery(e.target.value)}
+      />
+    </div>
   </div>
   <table className="w-full text-sm text-left">
     <thead className="bg-gray-50 border-b">
@@ -322,21 +395,21 @@ const filteredPendingRequests = pendingRequests.filter(req =>
         <th className="p-4">Name (ID)</th>
         <th className="p-4">Requested Date</th>
         <th className="p-4">Time Slot</th>
+        {/* NEW COLUMN */}
+        <th className="p-4 text-center">Edit Time</th> 
         <th className="p-4">Reject Feedback</th>
         <th className="p-4 text-center">Actions</th>
       </tr>
     </thead>
     <tbody>
-      {/* UPDATED: Uses filtered array for empty state */}
       {filteredPendingRequests.length === 0 && (
         <tr>
-          <td colSpan={5} className="p-6 text-center text-gray-500">
+          <td colSpan={6} className="p-6 text-center text-gray-500">
             {pendingSearchQuery ? "No matching ID found." : "No pending requests."}
           </td>
         </tr>
       )}
       
-      {/* UPDATED: Maps over the filtered array */}
       {filteredPendingRequests.map(req => (
         <tr key={req.id} className="border-b hover:bg-gray-50">
           <td className="p-4 font-bold">
@@ -345,7 +418,53 @@ const filteredPendingRequests = pendingRequests.filter(req =>
             {req.is_event_training && <span className="ml-2 bg-purple-100 text-purple-800 text-[10px] px-2 py-0.5 rounded font-bold uppercase">Employee</span>}
           </td>
           <td className="p-4">{getDateStr(req.schedule)}</td>
-          <td className="p-4 font-medium">{getTimeStr(req.schedule)}</td>
+          
+          {/* UPDATED: Time Slot Cell */}
+          <td className="p-4 font-medium">
+            {editingScheduleId === req.id ? (
+              <input 
+                type="time" 
+                className="border border-gray-300 rounded px-2 py-1 text-sm focus:ring-blue-500 focus:border-blue-500 outline-none"
+                value={editedTime}
+                onChange={(e) => setEditedTime(e.target.value)}
+              />
+            ) : (
+              getTimeStr(req.schedule)
+            )}
+          </td>
+
+          {/* NEW: Edit Time Button Cell */}
+          <td className="p-4 text-center">
+            {editingScheduleId === req.id ? (
+              <div className="flex gap-1 justify-center">
+                <button 
+                  onClick={() => handleSaveTime(req.id, req.schedule)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs font-bold transition"
+                >
+                  Save
+                </button>
+                <button 
+                  onClick={() => setEditingScheduleId(null)}
+                  className="bg-gray-200 hover:bg-gray-300 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:!text-white px-3 py-1 rounded text-xs font-bold transition"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button 
+  onClick={() => {
+    setEditingScheduleId(req.id);
+    const d = new Date(req.schedule);
+    
+    setEditedTime(`${String(d.getHours()).padStart(2, '0')}:00`);
+  }}
+  className="bg-gray-200 hover:bg-gray-300 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:!text-white px-3 py-1 rounded text-xs font-bold transition"
+>
+  Edit
+</button>
+            )}
+          </td>
+
           <td className="p-4">
             <select 
               className="border p-2 rounded text-xs w-full max-w-xs"
@@ -370,8 +489,7 @@ const filteredPendingRequests = pendingRequests.filter(req =>
   </table>
 </section>
 
-      
-     {/* ================= SECTIONS 2 & 3: CALENDAR & INTERACTIVE SIDE PANEL ================= */}
+ 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
         
        
@@ -432,17 +550,15 @@ const filteredPendingRequests = pendingRequests.filter(req =>
           </div>
         </section>
 
-        {/* RIGHT SIDE (1 Column): COMBINED TABBED PANEL */}
         <section className="lg:col-span-1 bg-white rounded-lg shadow border border-gray-200 flex flex-col h-[600px]">
           
-  {/* TAB BUTTONS HEADER - Using standard gray/white so globals.css inverts them automatically */}
   <div className="flex border-b border-gray-200 bg-gray-50">
     <button 
       onClick={() => setActivePanelTab('timeline')}
       className={`flex-1 py-4 text-sm font-bold flex justify-center items-center gap-2 transition-all ${
         activePanelTab === 'timeline' 
-          ? 'bg-white border-b-2 border-blue-600' // bg-white will turn dark automatically
-          : 'bg-gray-50 text-gray-500 hover:bg-gray-200' // bg-gray-50 will turn dark automatically
+          ? 'bg-white border-b-2 border-blue-600' 
+          : 'bg-gray-50 text-gray-500 hover:bg-gray-200' 
       }`}
     >
       <FaClock /> Hourly Timeline
@@ -487,14 +603,14 @@ const filteredPendingRequests = pendingRequests.filter(req =>
                 return `${displayH}:00 ${ampm}`;
               };
               const timeString = `${formatTime(hour)} - ${formatTime(nextHour)}`;
-              const isFull = students.length >= 4;
+              const isFull = students.length >= 5;
 
               return (
                 <div key={hour} className={`border rounded-lg p-3 bg-white shadow-sm ${isFull ? 'border-red-400' : 'border-gray-300'}`}>
                   <div className="flex justify-between items-center mb-3 border-b pb-2">
                     <span className={`font-bold text-sm ${isFull ? 'text-red-500' : 'text-blue-500'}`}>{timeString}</span>
                     <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider ${isFull ? 'bg-red-600 text-white' : 'bg-green-600 text-white'}`}>
-                      {students.length} / 4 Slots
+                      {students.length} / 5 Slots {/* <-- And change this */}
                     </span>
                   </div>
                   <ul className="space-y-2">
