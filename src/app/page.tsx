@@ -86,7 +86,7 @@ export default function Home() {
             >
               <div className="card h-100">
                 <img
-                  src="/csu-logo-official.png"
+                  src="/sports equipment.png"
                   className="mx-auto mt-4"
                   alt="..."
                 />
