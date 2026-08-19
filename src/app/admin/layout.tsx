@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../utils/supabase"; 
 import Sidebar from "../../components/admin/Sidebar"; 
+import { AdminThemeProvider } from "@/components/admin/ThemeContext";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -31,10 +32,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  return (
-    <div className="flex min-h-screen">
-      <Sidebar />
-      <main className="flex-1 bg-gray-50">{children}</main>
-    </div>
+ return (
+    <AdminThemeProvider> 
+      <div className="flex min-h-screen">
+        <Sidebar />
+        <main className="flex-1 bg-gray-50">{children}</main>
+      </div>
+    </AdminThemeProvider>
   );
 }
