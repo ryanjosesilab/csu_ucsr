@@ -214,9 +214,9 @@ export default function Home() {
         </h2>
         <div className="container px-sm-0 px-lg-5 py-4">
           <div className="wrapper mt-2" data-aos="fade-up" data-aos-delay="400">
-            <div className="gallery_product card-project filter design">
-              <ExpandableImage src="/org_structure.png" className="img-fluid" />
-            </div>
+           <div className="gallery_product card-project filter design">
+  <ExpandableImage src="/org-structure.png" className="img-fluid" />
+</div>
 
             <div className="gallery_product card-project filter development">
               <ExpandableImage
