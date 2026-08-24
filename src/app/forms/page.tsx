@@ -115,7 +115,7 @@ export default function FormsPage() {
     e.preventDefault();
 
     try {
-      let response; // To store the Supabase response
+      let response; 
 
       if (formType === 'Equipment Borrowing') {
         response = await supabase.from('equipment_borrowings').insert([{
@@ -283,6 +283,8 @@ export default function FormsPage() {
       else if (formType === 'Sports Tryouts') customMessage = "Tryout submission received! Good luck.";
 
       alert(customMessage);
+
+      window.location.reload();
 
     } catch (err: any) {
       console.error("Runtime error:", err);
