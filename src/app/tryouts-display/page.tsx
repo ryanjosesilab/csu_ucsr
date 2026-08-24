@@ -58,7 +58,7 @@ export default function TryoutsDisplayPage() {
     <div className="min-h-screen bg-[#0F4E15] p-8">
       <div className="text-center mb-8">
         <h1 className="text-4xl font-extrabold text-white uppercase tracking-widest">Live Tryout Results</h1>
-        <p className="text-white/80 mt-2">Updates automatically every 10 seconds</p>
+        <p className="text-white/80 mt-2">Updates every 10 seconds</p>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-8">
