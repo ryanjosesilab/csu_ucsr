@@ -41,24 +41,20 @@ export default function ArchivePage() {
     setArchived(data || []);
   };
 
-  // --- NEW: Retrieve Function ---
   const handleRetrieve = async (id: string) => {
-    if (!confirm(`Are you sure you want to retrieve this request and move it to the Accepted roster?`)) return;
+    if (!confirm(`Are you sure you want to retrieve this request and move it back to the active Band Requests?`)) return;
 
-    // Update the database to remove it from the archive and set status to 'accepted'
     const { error } = await supabase
-      .from('tryout_submissions')
+      .from('dlc_request') 
       .update({ 
-        status: 'accepted', // This ensures it goes to the Accepted Students Roster
         is_archived: false,
-        assigned_to: null   // Clears any previous assignment just in case
+        status: 'pending' 
       })
       .eq('id', id);
 
     if (!error) {
-      // Remove the student from the current screen
       setArchived(prev => prev.filter(student => student.id !== id));
-      alert(`Tryout request successfully retrieved!`);
+      alert(`DLC request successfully retrieved!`);
     } else {
       alert("Failed to retrieve the request.");
       console.error(error);
@@ -67,28 +63,24 @@ export default function ArchivePage() {
 
   const filtered = is_archived
     .filter(s => {
-      // 1. Search and Status still act as strict filters
       const matchesSearch = (s.student_name || '').toLowerCase().includes(search.toLowerCase());
       const currentStatus = (s.status || '').replace(/['"]+/g, '').toLowerCase();
       const matchesStatus = statusFilter === 'all' ? true : currentStatus === statusFilter;
 
-      // Notice we REMOVED the strict date filter here so data stops vanishing!
       return matchesSearch && matchesStatus;
     })
     .sort((a, b) => {
       const dateA = a.date_requested ? new Date(a.date_requested).getTime() : 0;
       const dateB = b.date_requested ? new Date(b.date_requested).getTime() : 0;
 
-      // 2. NEW LOGIC: Proximity Sort
-      // If the admin picked a date, sort the list by how close it is to that date
+     
       if (selectedDate) {
         const targetTime = new Date(selectedDate).getTime();
         const diffA = Math.abs(dateA - targetTime);
         const diffB = Math.abs(dateB - targetTime);
-        return diffA - diffB; // Smallest difference (closest dates) go to the top
+        return diffA - diffB; 
       }
 
-      // 3. Normal Sort: If no date is selected, use the Newest/Oldest button
       return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
     });
 
