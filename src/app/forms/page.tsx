@@ -5,7 +5,6 @@ import { supabase } from '../../utils/supabase';
 import React, { useEffect, useState } from 'react';
 
 export default function FormsPage() {
-  // State to handle active tab switching
   const [activeTab, setActiveTab] = useState<'equipment' | 'gym' | 'dlc' | 'general'>('equipment');
 
   const [isTryoutActive, setIsTryoutActive] = useState<boolean | null>(null);
@@ -584,9 +583,47 @@ export default function FormsPage() {
   />
 </div>
     
-    <div className="mb-3">
-      <label className="form-label fw-medium">Preferred Training Schedule</label>
-      <input type="datetime-local" className="form-control text-dark bg-light" value={gymForm.schedule} onChange={(e) => setGymForm({...gymForm, schedule: e.target.value})} required />
+    {/* --- UPDATED SCHEDULE BLOCK (Date Picker + Time Dropdown) --- */}
+    <div className="row mb-3">
+      <div className="col-md-6">
+        <label className="form-label fw-medium">Preferred Date</label>
+        <input 
+          type="date" 
+          className="form-control text-dark bg-light" 
+          /* Display only the date half of the string */
+          value={gymForm.schedule ? gymForm.schedule.split('T')[0] : ''} 
+          onChange={(e) => {
+            const selectedDate = e.target.value;
+            // If they haven't picked a time yet, default to 9 AM so the database doesn't break
+            const selectedTime = (gymForm.schedule && gymForm.schedule.includes('T')) 
+              ? gymForm.schedule.split('T')[1] 
+              : '09:00'; 
+            setGymForm({...gymForm, schedule: `${selectedDate}T${selectedTime}`});
+          }} 
+          required 
+        />
+      </div>
+      <div className="col-md-6 mt-3 mt-md-0">
+        <label className="form-label fw-medium">Preferred Time Slot</label>
+        <select 
+          className="form-select text-dark bg-light"
+          value={gymForm.schedule && gymForm.schedule.includes('T') ? gymForm.schedule.split('T')[1] : ''}
+          onChange={(e) => {
+            const selectedTime = e.target.value;
+            const selectedDate = gymForm.schedule ? gymForm.schedule.split('T')[0] : '';
+            setGymForm({...gymForm, schedule: `${selectedDate}T${selectedTime}`});
+          }}
+          required
+        >
+          <option value="" disabled>Select a time</option>
+          <option value="09:00">9:00 AM - 10:00 AM</option>
+          <option value="10:00">10:00 AM - 11:00 AM</option>
+          <option value="11:00">11:00 AM - 12:00 PM</option>
+          <option value="13:00">1:00 PM - 2:00 PM</option>
+          <option value="14:00">2:00 PM - 3:00 PM</option>
+          <option value="15:00">3:00 PM - 4:00 PM</option>
+        </select>
+      </div>
     </div>
     
     {/* Explicit Yes/No Radio options acting as strict clean selections */}
