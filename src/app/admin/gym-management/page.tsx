@@ -27,12 +27,12 @@ export default function GymManagementPage() {
   const [requests, setRequests] = useState<GymBooking[]>([]);
   const [rejectFeedback, setRejectFeedback] = useState<Record<number, string>>({});
   const [activePanelTab, setActivePanelTab] = useState<'timeline' | 'attendance'>('timeline');
+  const [isGymActive, setIsGymActive] = useState<boolean>(true);
+  const [gymClosedReason, setGymClosedReason] = useState<string>("");
 
-  // NEW: State for editing time
   const [editingScheduleId, setEditingScheduleId] = useState<number | null>(null);
   const [editedTime, setEditedTime] = useState<string>("");
 
-  // NEW: Function to save the edited time
   const handleSaveTime = async (id: number, oldSchedule: string) => {
     try {
       const d = new Date(oldSchedule);
@@ -46,7 +46,6 @@ export default function GymManagementPage() {
         .eq('id', id);
 
       if (!error) {
-        // Update local state to reflect change immediately without waiting for Realtime
         setRequests(prev => prev.map(req => req.id === id ? { ...req, schedule: newScheduleIso } : req));
         setEditingScheduleId(null);
       } else {
@@ -69,7 +68,6 @@ export default function GymManagementPage() {
 
   const [selectedDate, setSelectedDate] = useState<string>(getLocalToday());
 
-  // --- NEW: FULL CALENDAR STATES & LOGIC ---
   const [calMonth, setCalMonth] = useState(new Date().getMonth());
   const [calYear, setCalYear] = useState(new Date().getFullYear());
 
@@ -92,28 +90,47 @@ export default function GymManagementPage() {
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   // -----------------------------------------
 
-  useEffect(() => {
-    // 1. Fetch initially when the page loads
-    fetchRequests();
 
-    // 2. Set up the Realtime Subscription listener
+  const fetchSettings = async () => {
+    const { data } = await supabase.from('settings').select('is_gym_active, gym_closed_reason').eq('id', 1).single();
+    if (data) {
+      setIsGymActive(data.is_gym_active !== false); // Defaults to true
+      setGymClosedReason(data.gym_closed_reason || "");
+    }
+  };
+
+  const toggleGymStatus = async (active: boolean, reason: string = "") => {
+    const { error } = await supabase.from('settings').update({
+      is_gym_active: active,
+      gym_closed_reason: reason
+    }).eq('id', 1);
+
+    if (!error) {
+      setIsGymActive(active);
+      setGymClosedReason(reason);
+    } else {
+      alert("Failed to update gym status.");
+    }
+  };
+  useEffect(() => {
+    fetchRequests();
+    fetchSettings();
+
     const gymChannel = supabase
       .channel('realtime-gym-bookings')
       .on(
         'postgres_changes',
         {
-          event: '*', // Listens for INSERT, UPDATE, and DELETE
+          event: '*', 
           schema: 'public',
           table: 'gym_bookings'
         },
         () => {
-          // Refetch the data so the UI stays perfectly in sync
           fetchRequests(); 
         }
       )
       .subscribe();
 
-    // 3. Cleanup the subscription when the admin leaves the page
     return () => {
       supabase.removeChannel(gymChannel);
     };
@@ -134,7 +151,6 @@ export default function GymManagementPage() {
     }
   };
 
-  // Safe Date Extractor (Guarantees YYYY-MM-DD match)
   const getDateStr = (isoString: string) => {
     if (!isoString) return '';
     try {
@@ -144,7 +160,6 @@ export default function GymManagementPage() {
       const day = String(d.getDate()).padStart(2, '0');
       return `${year}-${month}-${day}`;
     } catch {
-      // Fallback if the database string is weird
       return isoString.split('T')[0];
     }
   };
@@ -191,7 +206,6 @@ export default function GymManagementPage() {
 
   const handleAttendance = async (req: GymBooking, didAttend: boolean) => {
     if (didAttend) {
-      // (Keep your existing "true" logic here - marking them as active)
       const { error } = await supabase
         .from('gym_bookings')
         .update({ status: 'active' })
@@ -201,16 +215,12 @@ export default function GymManagementPage() {
         setRequests(prev => prev.map(r => r.id === req.id ? { ...r, status: 'active' } : r));
       }
     } else {
-      // --- UPGRADED "TWO STRIKES" BAN LOGIC ---
       if (!confirm(`Mark ${req.name} as a No-Show?`)) return;
 
-      // 1. Mark THIS current booking as 'missed'
       await supabase.from('gym_bookings').update({ status: 'missed' }).eq('id', req.id);
 
-      // 2. Immediately update the UI so it disappears from the Awaiting list
       setRequests(prev => prev.map(r => r.id === req.id ? { ...r, status: 'missed' } : r));
 
-      // 3. Count how many total 'missed' sessions this student now has
       const { data: missedBookings, error: countError } = await supabase
         .from('gym_bookings')
         .select('id')
@@ -224,13 +234,10 @@ export default function GymManagementPage() {
 
       const totalMisses = missedBookings ? missedBookings.length : 0;
 
-      // 4. If they have hit the threshold (2 or more misses), ban them!
       if (totalMisses >= 2) {
-        // Calculate the unban date (7 days from right now)
         const banUntilDate = new Date();
         banUntilDate.setDate(banUntilDate.getDate() + 7);
 
-        // Update the 'students' table with this unban date
         const { error: banError } = await supabase
           .from('students')
           .update({ banned_until: banUntilDate.toISOString() })
@@ -247,7 +254,6 @@ export default function GymManagementPage() {
     }
   };
 
-  // --- FILTERING ---
   const pendingRequests = requests.filter(r => r.status === 'pending');
   
   const todaysSchedule = requests.filter(r => 
@@ -260,26 +266,21 @@ export default function GymManagementPage() {
     r.status === 'accepted'
   );
 
- // NEW: Smart Hint Counter
   const acceptedOtherDays = requests.filter(r => 
     getDateStr(r.schedule) !== selectedDate && 
     (r.status === 'accepted' || r.status === 'active')
   );
 
- // --- NEW: HOURLY TIMELINE LOGIC WITH REAL-TIME FILTERING ---
-  // Groups today's accepted/active students by their hour block
   const hourlySlots: Record<number, GymBooking[]> = {};
   todaysSchedule.forEach(req => {
-    const hour = new Date(req.schedule).getHours(); // Gets the hour (e.g., 9 for 9:00 AM)
+    const hour = new Date(req.schedule).getHours(); 
     if (!hourlySlots[hour]) hourlySlots[hour] = [];
     hourlySlots[hour].push(req);
   });
   
-  // Gets the current date and the actual current hour (e.g., 10 for 10:01 AM)
   const todayStr = getLocalToday();
   const currentHour = new Date().getHours();
 
-  // Sort and filter the hours
   const sortedHours = Object.keys(hourlySlots)
     .map(Number)
     .filter(hour => {
@@ -293,11 +294,9 @@ export default function GymManagementPage() {
     .sort((a, b) => a - b);
 
 const filteredPendingRequests = pendingRequests.filter(req => {
-    // 1. Check if it matches the Search ID
     const matchesSearch = req.student_id?.toLowerCase().includes(pendingSearchQuery.toLowerCase());
     if (!matchesSearch) return false;
 
-    // 2. Check if it matches the Date Filter
     if (dateFilter === 'all') return true;
 
     const reqDate = new Date(req.schedule);
@@ -308,7 +307,6 @@ const filteredPendingRequests = pendingRequests.filter(req => {
     }
 
     if (dateFilter === 'week') {
-      // Get the Sunday of the current week
       const startOfWeek = new Date(now);
       startOfWeek.setDate(now.getDate() - now.getDay());
       startOfWeek.setHours(0, 0, 0, 0);
@@ -333,23 +331,62 @@ const filteredPendingRequests = pendingRequests.filter(req => {
     <div className="p-8 space-y-12">
       <div className="relative overflow-hidden flex justify-between items-center mb-8 bg-[#0F4E15] p-6 rounded-lg shadow-md border border-white/10">
       
-      {/* Absolute Background Image pinned to the right */}
       <div 
         className="absolute inset-y-0 right-0 w-1/2 lg:w-[60%] bg-cover bg-center z-0"
         style={{ backgroundImage: "url('/try-header.png')" }}
       >
-        {/* Gradient overlay to smoothly blend the green into the image */}
         <div className="absolute inset-0 bg-gradient-to-r from-[#0F4E15] via-[#0F4E15]/80 to-transparent"></div>
       </div>
 
-      {/* Left Content (Text) */}
       <div className="relative z-10">
         <h1 className="text-3xl font-bold text-white">Gym Session Management</h1>
         <p className="text-white/80 mt-1">Manage requests, view the calendar, and track attendance.</p>
       </div>
 
-      {/* Right Content (Button) */}
-      <div className="relative z-10">
+      <div className="relative z-10 flex items-center gap-4">
+        
+        {/* 🔥 NEW: GYM STATUS CONTROL PANEL */}
+        <div className="flex items-center gap-3 bg-black/20 px-4 py-2 rounded-lg backdrop-blur-sm border border-white/10 hidden sm:flex">
+          <span className="text-white font-bold text-sm">Status:</span>
+          {isGymActive ? (
+            <div className="flex items-center gap-2">
+              <span className="bg-green-500 text-white text-[10px] px-2 py-1 rounded font-bold uppercase tracking-wider shadow-sm">Open</span>
+              <select 
+                className="text-xs text-white bg-transparent border border-white/30 rounded px-2 py-1 cursor-pointer outline-none font-medium"
+                onChange={(e) => {
+                  if(e.target.value) toggleGymStatus(false, e.target.value);
+                }}
+                value=""
+              >
+                <option value="" disabled style={{ color: '#6b7280', backgroundColor: '#ffffff' }}>
+                  Close Gym...
+                </option>
+                <option value="Closed" style={{ color: '#000000', backgroundColor: '#ffffff' }}>
+                  Closed
+                </option>
+                <option value="Utilized by Athletes" style={{ color: '#000000', backgroundColor: '#ffffff' }}>
+                  Utilized by Athletes
+                </option>
+                <option value="Under Development" style={{ color: '#000000', backgroundColor: '#ffffff' }}>
+                  Under Development
+                </option>
+              </select>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span className="bg-red-500 text-white text-[10px] px-2 py-1 rounded font-bold uppercase tracking-wider shadow-sm">
+                CLOSED: {gymClosedReason}
+              </span>
+              <button 
+                onClick={() => toggleGymStatus(true, "")}
+                className="bg-green-600 hover:bg-green-500 text-white text-xs px-3 py-1 rounded font-bold transition shadow-sm"
+              >
+                Re-Open
+              </button>
+            </div>
+          )}
+        </div>
+
         <Link href="/admin/gym-management-history">
           <button 
             className="bg-blue-600 text-white p-3 rounded hover:bg-blue-700 transition shadow-sm flex items-center justify-center"
@@ -368,7 +405,6 @@ const filteredPendingRequests = pendingRequests.filter(req => {
 
     <div className="flex items-center gap-3">
       
-      {/* NEW: Date Filter Dropdown */}
       <select
         value={dateFilter}
         onChange={(e) => setDateFilter(e.target.value as 'all' | 'today' | 'week' | 'month')}
@@ -419,7 +455,6 @@ const filteredPendingRequests = pendingRequests.filter(req => {
           </td>
           <td className="p-4">{getDateStr(req.schedule)}</td>
           
-          {/* UPDATED: Time Slot Cell */}
           <td className="p-4 font-medium">
             {editingScheduleId === req.id ? (
               <input 
@@ -433,7 +468,6 @@ const filteredPendingRequests = pendingRequests.filter(req => {
             )}
           </td>
 
-          {/* NEW: Edit Time Button Cell */}
           <td className="p-4 text-center">
             {editingScheduleId === req.id ? (
               <div className="flex gap-1 justify-center">
@@ -494,7 +528,6 @@ const filteredPendingRequests = pendingRequests.filter(req => {
         
        
         <section className="lg:col-span-2 bg-white rounded-lg shadow border border-gray-200 overflow-hidden flex flex-col h-full">
-          {/* Calendar Header */}
           <div className="bg-gray-800 px-6 py-4 flex justify-between items-center text-white">
             <h2 className="text-lg font-bold flex items-center">
               <FaCalendarAlt className="mr-2"/> Monthly Overview
@@ -506,7 +539,6 @@ const filteredPendingRequests = pendingRequests.filter(req => {
             </div>
           </div>
 
-          {/* Calendar Grid */}
           <div className="p-6 bg-gray-50 flex-1">
             <div className="grid grid-cols-7 gap-2 mb-2 text-center text-xs font-bold text-gray-500 uppercase">
               <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
@@ -574,7 +606,6 @@ const filteredPendingRequests = pendingRequests.filter(req => {
     >
       <FaUserCheck /> Attendance
       
-      {/* Show a red dot if there are students waiting! */}
       {awaitingConfirmation.length > 0 && (
         <span className="bg-red-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center animate-pulse">
           {awaitingConfirmation.length}
@@ -583,10 +614,8 @@ const filteredPendingRequests = pendingRequests.filter(req => {
     </button>
   </div>
 
-  {/* TAB CONTENT AREA - Using bg-gray-50 so it turns dark automatically */}
   <div className="p-4 flex-1 overflow-y-auto bg-gray-50">
     
-    {/* --- TAB 1: TIMELINE CONTENT --- */}
     {activePanelTab === 'timeline' && (
       <div className="animate-in fade-in duration-300">
         <h3 className="font-bold mb-4 border-b pb-2">Timeline for {selectedDate}</h3>
@@ -610,7 +639,7 @@ const filteredPendingRequests = pendingRequests.filter(req => {
                   <div className="flex justify-between items-center mb-3 border-b pb-2">
                     <span className={`font-bold text-sm ${isFull ? 'text-red-500' : 'text-blue-500'}`}>{timeString}</span>
                     <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider ${isFull ? 'bg-red-600 text-white' : 'bg-green-600 text-white'}`}>
-                      {students.length} / 5 Slots {/* <-- And change this */}
+                      {students.length} / 5 Slots 
                     </span>
                   </div>
                   <ul className="space-y-2">
@@ -632,7 +661,6 @@ const filteredPendingRequests = pendingRequests.filter(req => {
       </div>
     )}
 
-    {/* --- TAB 2: ATTENDANCE CONTENT --- */}
     {activePanelTab === 'attendance' && (
       <div className="animate-in fade-in duration-300">
         <h3 className="font-bold mb-4 border-b pb-2">Awaiting Entry for {selectedDate}</h3>
@@ -661,14 +689,12 @@ const filteredPendingRequests = pendingRequests.filter(req => {
                   </div>
                   
                   <div className="flex gap-2">
-                    {/* FIXED: Changed to solid green background so it's visible in both modes */}
                     <button 
                       onClick={() => handleAttendance(req, true)}
                       className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded text-sm font-bold transition flex justify-center items-center"
                     >
                       <FaCheck className="mr-2" /> Present
                     </button>
-                    {/* FIXED: Changed to solid red background so it's visible in both modes */}
                     <button 
                       onClick={() => handleAttendance(req, false)}
                       className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded text-sm font-bold transition flex justify-center items-center"

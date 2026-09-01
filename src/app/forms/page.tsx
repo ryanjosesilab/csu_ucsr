@@ -8,7 +8,10 @@ export default function FormsPage() {
   const [activeTab, setActiveTab] = useState<'equipment' | 'gym' | 'dlc' | 'general'>('equipment');
 
   const [isTryoutActive, setIsTryoutActive] = useState<boolean | null>(null);
+  const [isGymActive, setIsGymActive] = useState<boolean | null>(null); 
+  const [gymClosedReason, setGymClosedReason] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [equipmentForm, setEquipmentForm] = useState({
     borrowerName: '',
@@ -22,21 +25,20 @@ export default function FormsPage() {
   });
 
   useEffect(() => {
-    const checkTryoutStatus = async () => {
+    const checkSystemSettings = async () => {
       const { data, error } = await supabase
         .from('settings')
-        .select('is_tryout_active')
+        .select('is_tryout_active, is_gym_active, gym_closed_reason') // 🔥 UPDATED
         .single();
-
-      console.log("Settings Data:", data);
-      console.log("Settings Error:", error);
       
       if (data) {
         setIsTryoutActive(data.is_tryout_active);
+        setIsGymActive(data.is_gym_active !== false); // Defaults to true
+        setGymClosedReason(data.gym_closed_reason || "Currently unavailable.");
       }
       setLoading(false);
     };
-    checkTryoutStatus();
+    checkSystemSettings();
   }, []);
 
   //Fitness Gym Session Form
@@ -129,31 +131,32 @@ export default function FormsPage() {
         }]);
       } else if (formType === 'Gym Session') {
         
-        // --- PHASE 2 SECURITY CHECKS ---
         
-        // 1. Check Manual Permanent Ban (Settings Table)
+        const cleanStudentId = formData.studentId.replace(/-/g, '');
+        
         const { data: settingsData } = await supabase
           .from('settings')
           .select('banned_gym_students')
           .eq('id', 1)
           .single();
           
-        if (settingsData?.banned_gym_students?.includes(formData.studentId)) {
-           alert("BOOKING DENIED.\n\nStatus: BANNED\nReason: Admin restriction.\n\nPlease contact the UCSR office.");
-           return; // Stop form submission
+        if (settingsData?.banned_gym_students?.includes(cleanStudentId)) {
+           alert("BOOKING DENIED.\n\nStatus: BANNED\nReason: Admin restriction.");
+           setIsSubmitting(false); 
+           return; 
         }
 
-        // 2. Check Automatic 7-Day Ban (Students Table)
         const { data: banData } = await supabase
           .from('students')
           .select('banned_until')
-          .eq('student_id', formData.studentId)
+          .eq('student_id', cleanStudentId) 
           .single();
           
         if (banData?.banned_until && new Date(banData.banned_until) > new Date()) {
           const unbanDateStr = new Date(banData.banned_until).toLocaleDateString();
           alert(`BOOKING DENIED.\n\nStatus: TEMPORARILY BANNED\nReason: You missed multiple scheduled sessions.\n\nYour ban will automatically expire on ${unbanDateStr}.`);
-          return; // Stop form submission
+          setIsSubmitting(false);
+          return; 
         }
 
         // 3. Check if they already have a request FOR THIS SPECIFIC DAY (Spam Prevention)
@@ -164,7 +167,7 @@ export default function FormsPage() {
         const { data: existingDayRequest } = await supabase
           .from('gym_bookings')
           .select('id, status')
-          .eq('student_id', formData.studentId)
+          .eq('student_id', formData.studentId) // Keep this one with the dash if gym_bookings uses it!
           .gte('schedule', startOfDay) 
           .lte('schedule', endOfDay)   
           .in('status', ['pending', 'accepted', 'active']) 
@@ -173,14 +176,15 @@ export default function FormsPage() {
         if (existingDayRequest && existingDayRequest.length > 0) {
           const currentStatus = existingDayRequest[0].status;
           alert(`You already have a ${currentStatus} gym request on ${requestedDate}! You can only book one session per day.`);
+          setIsSubmitting(false);
           return; 
         }
         // --- END SECURITY CHECKS ---
 
+        // Keep the database insert exactly the same...
         response = await supabase.from('gym_bookings').insert([{
           name: formData.name,
           student_id: formData.studentId,
-          // FIX: Wrap the schedule in new Date().toISOString()
           schedule: new Date(formData.schedule).toISOString(), 
           is_event_training: formData.isEventTraining === 'Yes',
           status: 'pending' 
@@ -190,12 +194,11 @@ export default function FormsPage() {
         let pdfUrl = null;
 
         if (dlcFile) {
-          // Create a unique file name to prevent overwriting
           const fileExt = dlcFile.name.split('.').pop();
           const fileName = `dlc_${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
 
           const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('dlc-documents') // We will create this bucket in the next step
+            .from('dlc-documents')
             .upload(fileName, dlcFile);
 
           if (uploadError) {
@@ -232,13 +235,11 @@ export default function FormsPage() {
       
       else if (formType === 'Sports Tryouts') {
         
-        // --- NEW TRYOUT SEASON LOGIC ---
-        // 1. Before submitting, we verify if the student is already in the database
+       
         const { data: existingApp, error: checkError } = await supabase
           .from('tryout_submissions')
           .select('id')
           .eq('student_id', formData.studentId)
-          // Look here: We do NOT include 'expired_rejection' in this block list!
           .in('status', ['pending', 'accepted', 'rejected']) 
           .eq('is_archived', false);
 
@@ -317,9 +318,15 @@ export default function FormsPage() {
         </button>
         <button 
           className={`btn px-4 py-2 fw-semibold ${activeTab === 'gym' ? 'btn-primary shadow-sm' : 'btn-outline-primary'}`} 
-          onClick={() => setActiveTab('gym')}
+          onClick={() => {
+            if (isGymActive === false) {
+              alert(`Gym requests are currently closed.\nReason: ${gymClosedReason}`);
+            } else {
+              setActiveTab('gym');
+            }
+          }}
         >
-          Fitness Gym Session Request
+          {isGymActive === false ? "Fitness Gym (Closed)" : "Fitness Gym Session Request"}
         </button>
         <button 
           className={`btn px-4 py-2 fw-semibold ${activeTab === 'dlc' ? 'btn-primary shadow-sm' : 'btn-outline-primary'}`} 
@@ -341,7 +348,6 @@ export default function FormsPage() {
   </button>
       </div>
 
-      {/* Dynamic Form Display Container */}
       <div className="card shadow border-0 p-4 p-md-5 mx-auto bg-white" style={{ maxWidth: '650px', borderRadius: '12px', backgroundColor: '#ffffff' }} data-aos="fade-up" data-aos-delay="200">
         
         {/* FORM 1: SPORTS EQUIPMENT BORROWING */}
@@ -355,10 +361,9 @@ export default function FormsPage() {
         type="text" 
         className="form-control text-dark bg-light" 
         value={equipmentForm.borrowerName} 
-        maxLength={50} // Limits input to 50 characters
+        maxLength={50} 
         onChange={(e) => {
-          // This Regex ONLY allows Letters (a-z, A-Z), spaces (\s), hyphens (\-), and apostrophes (')
-          // It instantly deletes anything else (like <, >, =, ;, or numbers)
+         
           const sanitizedValue = e.target.value.replace(/[^a-zA-Z\s\-']/g, '');
           setEquipmentForm({...equipmentForm, borrowerName: sanitizedValue});
         }} 
@@ -369,14 +374,12 @@ export default function FormsPage() {
     <div className="mb-3">
       <label className="form-label fw-medium">Contact Number</label>
       <input 
-        type="text" // Using text (or "tel") keeps the starting 0 safe!
+        type="text" 
         className="form-control text-dark bg-light" 
         placeholder="09XXXXXXXXX" 
         value={equipmentForm.contactNumber} 
-        maxLength={11} // Physically stops them at 11 characters
+        maxLength={11} 
         onChange={(e) => {
-          // \D is a regex shortcut that means "anything that is NOT a digit".
-          // This instantly deletes letters, spaces, and special characters.
           const onlyNumbers = e.target.value.replace(/\D/g, '');
           setEquipmentForm({...equipmentForm, contactNumber: onlyNumbers});
         }} 
@@ -384,11 +387,9 @@ export default function FormsPage() {
       />
     </div>
 
-    {/* Borrower Classification Checkbox/Radio options */}
     <div className="mb-3">
       <label className="form-label fw-medium d-block">Borrower Classification</label>
       
-      {/* Radio Buttons */}
       <div className="form-check form-check-inline">
         <input className="form-check-input" type="radio" name="borrowerType" id="type-student" value="Student" checked={equipmentForm.borrowerType === 'Student'} onChange={(e) => setEquipmentForm({...equipmentForm, borrowerType: e.target.value, typeOthersSpecify: ''})} />
         <label className="form-check-label text-dark" htmlFor="type-student">Student</label>
@@ -402,7 +403,6 @@ export default function FormsPage() {
         <label className="form-check-label text-dark" htmlFor="type-others">Others</label>
       </div>
 
-      {/* Conditional Text Input (Shows only if 'Others' is selected) */}
       {equipmentForm.borrowerType === 'Others' && (
         <div className="mt-2">
           <input 
@@ -410,9 +410,8 @@ export default function FormsPage() {
             className="form-control text-dark bg-light" 
             placeholder="Please specify (e.g. Guest)" 
             value={equipmentForm.typeOthersSpecify || ''} 
-            maxLength={30} // Limits to 30 characters
+            maxLength={30} 
             onChange={(e) => {
-              // Instantly deletes numbers and special characters (allows only letters and spaces)
               const sanitizedValue = e.target.value.replace(/[^a-zA-Z\s]/g, '');
               setEquipmentForm({...equipmentForm, typeOthersSpecify: sanitizedValue});
             }} 
