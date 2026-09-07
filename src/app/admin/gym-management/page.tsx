@@ -81,7 +81,6 @@ export default function GymManagementPage() {
     else { setCalMonth(m => m - 1); }
   };
 
-  // Calculate grid padding and days for the month
   const firstDayOfMonth = new Date(calYear, calMonth, 1).getDay();
   const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
   const blankDays = Array.from({ length: firstDayOfMonth }, (_, i) => i);
@@ -94,7 +93,7 @@ export default function GymManagementPage() {
   const fetchSettings = async () => {
     const { data } = await supabase.from('settings').select('is_gym_active, gym_closed_reason').eq('id', 1).single();
     if (data) {
-      setIsGymActive(data.is_gym_active !== false); // Defaults to true
+      setIsGymActive(data.is_gym_active !== false); 
       setGymClosedReason(data.gym_closed_reason || "");
     }
   };
@@ -345,7 +344,6 @@ const filteredPendingRequests = pendingRequests.filter(req => {
 
       <div className="relative z-10 flex items-center gap-4">
         
-        {/* 🔥 NEW: GYM STATUS CONTROL PANEL */}
         <div className="flex items-center gap-3 bg-black/20 px-4 py-2 rounded-lg backdrop-blur-sm border border-white/10 hidden sm:flex">
           <span className="text-white font-bold text-sm">Status:</span>
           {isGymActive ? (
@@ -676,16 +674,53 @@ const filteredPendingRequests = pendingRequests.filter(req => {
 
               return (
                 <li key={req.id} className={`p-4 bg-white border rounded-lg shadow-sm ${isLate ? 'border-orange-400' : 'border-gray-200'}`}>
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <p className="font-bold">{req.name}</p>
-                      <p className={`text-xs font-medium ${isLate ? 'text-orange-500' : 'text-blue-500'}`}>
-                        {getTimeStr(req.schedule)}
-                      </p>
+                  <div className="flex justify-between items-start mb-3 gap-2">
+                    {/* 🔥 ADDED flex-1 here. This acts as a boundary so it doesn't push the badge out! */}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold truncate">{req.name}</p>
+                      
+                      {/* 🔥 NEW EDIT TIME LOGIC FOR ATTENDANCE TAB */}
+                      {editingScheduleId === req.id ? (
+                        <div className="flex flex-wrap items-center gap-2 mt-1">
+                          <input 
+                            type="time" 
+                            className="border border-gray-300 rounded px-2 py-0.5 text-xs focus:ring-blue-500 focus:border-blue-500 outline-none"
+                            value={editedTime}
+                            onChange={(e) => setEditedTime(e.target.value)}
+                          />
+                          <button 
+                            onClick={() => handleSaveTime(req.id, req.schedule)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-0.5 rounded text-[10px] font-bold transition"
+                          >
+                            Save
+                          </button>
+                          
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1.5 mt-1">
+                          <span className={`text-xs font-medium leading-none ${isLate ? 'text-orange-500' : 'text-blue-500'}`}>
+                            {getTimeStr(req.schedule)}
+                          </span>
+                          <button 
+                            onClick={() => {
+                              setEditingScheduleId(req.id);
+                              const d = new Date(req.schedule);
+                              setEditedTime(`${String(d.getHours()).padStart(2, '0')}:00`);
+                            }}
+                            className={`transform -translate-y-[1.5px] flex items-center justify-center p-0 transition-transform hover:scale-110 hover:opacity-70 ${isLate ? 'text-orange-500' : 'text-blue-500'}`}
+                            title="Edit Time"
+                          >
+                            <FaClock size={11} />
+                          </button>
+                        </div>
+                      )}
+                      {/* 🔥 END NEW EDIT LOGIC */}
+
                     </div>
-                    <span className={`text-[10px] font-bold px-2 py-1 rounded ${isLate ? 'bg-orange-500 text-white' : 'bg-gray-200 dark:bg-green-700 text-green-800 dark:text-gray-200'}`}>
-  {isLate ? 'Overdue / Late' : 'Awaiting Entry'}
-</span>
+                    {/* 🔥 Badge remains locked in place */}
+                    <span className={`shrink-0 whitespace-nowrap text-[10px] font-bold px-2 py-1 rounded ${isLate ? 'bg-orange-500 text-white' : 'bg-gray-200 dark:bg-green-700 text-green-800 dark:text-gray-200'}`}>
+                      {isLate ? 'Overdue / Late' : 'Awaiting Entry'}
+                    </span>
                   </div>
                   
                   <div className="flex gap-2">
