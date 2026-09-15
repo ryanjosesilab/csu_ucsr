@@ -29,7 +29,7 @@ export default function Home() {
               data-aos-duration="800"
             >
               Caraga State University <br />
-              University Center for Sports and Recreational
+              University Center for Sports and Recreation
             </h1>
             <p
               className="desc mt-2 text-white"
