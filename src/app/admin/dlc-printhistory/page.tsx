@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../../../utils/supabase'; // Adjust path if needed
+import { supabase } from '../../../utils/supabase'; 
 import { FaCheck, FaChevronDown, FaChevronUp, FaDownload, FaSearch, FaArchive, FaArrowLeft } from 'react-icons/fa';
 import Link from 'next/dist/client/link';
 
@@ -31,7 +31,7 @@ export default function PrintedHistoryPage() {
 
   useEffect(() => {
     fetchRequests();
-    const interval = setInterval(fetchRequests, 5000); // Auto-refresh every 5 seconds
+    const interval = setInterval(fetchRequests, 5000); 
     return () => clearInterval(interval);
   }, []);
 
@@ -48,7 +48,6 @@ export default function PrintedHistoryPage() {
       return;
     }
     
-    // FIX: Add 'as DLCRequest[]' to satisfy TypeScript
     if (data) setRequests(data as DLCRequest[]);
   };
 
@@ -98,7 +97,6 @@ export default function PrintedHistoryPage() {
     }
   };
 
-  // Helper function to format the Request Number exactly like the printed form (e.g., "2026 - 04")
   const formatRequestNo = (req: DLCRequest) => {
     if (!req.request_number) return 'N/A';
     const year = new Date(req.created_at).getFullYear();
@@ -106,7 +104,6 @@ export default function PrintedHistoryPage() {
     return `${year} - ${paddedNumber}`;
   };
 
-  // Filter requests based on the search query (searching by Request No. or Student Name)
   const filteredRequests = requests.filter(req => {
     const requestNoString = formatRequestNo(req).toLowerCase();
     const nameString = req.student_name?.toLowerCase() || '';
@@ -131,7 +128,6 @@ export default function PrintedHistoryPage() {
           </div>
         </div>
         
-        {/* NEW: Buttons Container */}
         <div className="flex gap-3">
           <button 
             onClick={handleArchiveAll}
@@ -142,7 +138,6 @@ export default function PrintedHistoryPage() {
         </div>
       </div>
 
-      {/* SEARCH BAR */}
       <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex items-center gap-4">
         <FaSearch className="text-gray-400 text-lg ml-2" />
         <input 
@@ -159,7 +154,6 @@ export default function PrintedHistoryPage() {
         )}
       </div>
 
-      {/* TABLE */}
       <div className="bg-white shadow-md rounded-lg overflow-hidden border-t-4 border-blue-500">
         <table className="w-full text-sm text-left">
           <thead className="bg-gray-100 text-gray-700 uppercase text-xs">
@@ -193,7 +187,6 @@ export default function PrintedHistoryPage() {
                   </td>
                 </tr>
 
-                {/* EXPANDED ROW (PDF & Actions) */}
                 {expandedRows[req.id] && (
                   <tr className="bg-gray-50">
                     <td colSpan={5} className="p-0 border-b-2 border-blue-200">
@@ -221,7 +214,6 @@ export default function PrintedHistoryPage() {
                           </div>
                         )}
 
-                        {/* ACTIONS FOOTER */}
                         <div className="flex justify-end gap-4 border-t pt-4">
                           
                           <button 

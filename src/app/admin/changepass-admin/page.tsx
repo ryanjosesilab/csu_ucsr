@@ -24,7 +24,6 @@ export default function ChangePasswordPage() {
     e.preventDefault();
     setMessage({ type: "", text: "" });
 
-    // Validate that they actually entered a password
     if (!newPassword) {
       setMessage({ type: "error", text: "Please enter a new password." });
       return;
@@ -42,7 +41,6 @@ export default function ChangePasswordPage() {
 
     setIsLoading(true);
 
-    // Only update the password now
     const { error } = await supabase.auth.updateUser({ password: newPassword });
 
     if (error) {

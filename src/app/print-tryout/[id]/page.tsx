@@ -13,14 +13,12 @@ export default function PrintStudentForm() {
 
   useEffect(() => {
     const fetchData = async () => {
-      // 1. Fetch Student Data
       const { data: studentData } = await supabase
         .from('tryout_submissions')
         .select('*')
         .eq('id', params.id)
         .single();
 
-      // 2. Fetch Settings Data (Director Name)
       const { data: settingsData } = await supabase
         .from('settings')
         .select('director_name, director_title')
@@ -33,7 +31,6 @@ export default function PrintStudentForm() {
 
       if (studentData) {
         setStudent(studentData);
-        // Trigger print dialog automatically after a brief delay
         setTimeout(() => {
           window.print();
         }, 1000);
@@ -45,29 +42,23 @@ export default function PrintStudentForm() {
 
   if (!student) return <div className="p-10 text-center font-sans">Loading official record...</div>;
 
-  // List of colleges for the checkbox mapping
   const collegesList = ['CAA', 'CHaSS', 'CCIS', 'CED', 'CoFES', 'CMNS', 'CEGS', 'Others'];
 
   return (
     <div className="bg-white text-black h-full pt-2 px-8 pb-4 max-w-4xl mx-auto" style={{ fontFamily: 'Arial, sans-serif' }}>
       
-      {/* HEADER SECTION - Reduced mb-6 to mb-4 */}
       <div className="flex justify-between items-center mb-4">
-        {/* Left Logo & Text Image */}
         <div className="w-[400px] h-[100px]">
           <img src="/UCSR_HEADER.png" alt="CSU Header" className="w-full h-full object-contain object-left" />
         </div>
         
-        {/* Right Logos */}
         <div className="w-[250px] h-[80px]">
           <img src="/csu-logbook.jpg" alt="Right Logos" className="w-full h-full object-contain object-right" />
         </div>
       </div>
 
-      {/* Reduced mb-4 to mb-2 */}
       <h2 className="text-center font-bold text-sm mb-2">TRY-OUT FORM</h2>
 
-      {/* PERSONAL INFO SECTION */}
       <div className="text-xs space-y-2 mb-3">
         <div className="flex items-end gap-2">
           <span className="font-semibold whitespace-nowrap">Name:</span>
@@ -93,7 +84,6 @@ export default function PrintStudentForm() {
 
       <span className="border-b-[1px] border-black w-full inline-block"></span>
 
-      {/* COLLEGE CHECKBOXES - Reduced mb-6 to mb-4 */}
       <div className="text-xs mb-4">
         <p className="font-semibold mb-2">College (check the box below)</p>
         <div className="grid grid-cols-4 gap-4 px-8">
@@ -112,13 +102,11 @@ export default function PrintStudentForm() {
 
       <span className="border-b-[1px] border-black w-full inline-block"></span>
 
-      {/* SCREENING SECTION */}
       <div className="text-xs mb-4">
         <p className="font-bold mb-1">Screening</p>
         <p className="font-semibold mb-2">Physical Attributes: (9 points-highest and 1 point-lowest)</p>
         
         <div className="flex justify-between px-12 mb-2">
-          {/* Left Column Attributes */}
           <div className="space-y-1.5 w-1/2">
             {['Balance', 'Muscular Strength', 'Muscular Endurance', 'Cardiovascular Endu.', 'Flexibility', 'Body Composition'].map(attr => (
               <div key={attr} className="flex justify-between items-end pr-8">
@@ -132,7 +120,6 @@ export default function PrintStudentForm() {
             </div>
           </div>
 
-          {/* Right Column Attributes */}
           <div className="space-y-1.5 w-1/2 pl-8">
             {['Agility', 'Balance', 'Power', 'Speed', 'Reaction Time'].map(attr => (
               <div key={attr} className="flex justify-between items-end">
@@ -144,7 +131,6 @@ export default function PrintStudentForm() {
         </div>
       </div>
 
-      {/* SKILLS & ATTITUDE SECTION */}
       <div className="flex text-xs px-4 mb-4">
         <div className="w-1/2">
           <p className="font-bold mb-2">Skills</p>
@@ -171,7 +157,6 @@ export default function PrintStudentForm() {
         </div>
       </div>
       
-      {/* FOOTER REMARKS & SIGNATURES */}
       <div className="text-xs space-y-3">
         <div className="flex items-end gap-2">
           <span className="font-semibold">Remarks:</span>
@@ -189,7 +174,6 @@ export default function PrintStudentForm() {
           <span className="font-semibold">Evaluator:</span>
         </div>
 
-        {/* SIGNATURES */}
         <div className="flex justify-between mt-6">
           <div className="text-center">
             <p className="border-b border-black font-bold min-w-[200px] uppercase h-5">
@@ -206,7 +190,6 @@ export default function PrintStudentForm() {
         </div>
       </div>
 
-      {/* DOCUMENT CODE - Fixed to the absolute bottom of the page */}
       <div className="text-[9px] text-gray-800 mt-auto">
         <p>F-CSU-SPR-RF002, Rev.2, 12/12/2023</p>
       </div>

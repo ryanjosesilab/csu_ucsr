@@ -230,7 +230,6 @@ export default function TryoutsAdminPage() {
       </div>
     </div>
 
-      {/* TABLE 1: PENDING STUDENTS */}
       <div className="bg-white shadow rounded-lg border-l-4 border-yellow-500 overflow-hidden">
         <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex items-center">
           <FaHourglassHalf className="text-yellow-500 mr-2" />
@@ -292,7 +291,6 @@ export default function TryoutsAdminPage() {
         </div>
       </div>
 
-      {/* SINGLE UNIFIED ACCEPTED STUDENTS TABLE */}
       <div className="bg-white shadow rounded-lg border-t-4 border-green-600 overflow-hidden mt-6">
         <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex items-center justify-between">
           <div className="flex items-center">
@@ -379,7 +377,6 @@ export default function TryoutsAdminPage() {
         </div>
       </div>
 
-      {/* TABLE 2: REJECTED STUDENTS */}
       <div className="bg-white shadow rounded-lg border-l-4 border-red-500 overflow-hidden mt-6">
         <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex items-center">
           <FaBan className="text-red-500 mr-2" />
@@ -425,7 +422,6 @@ export default function TryoutsAdminPage() {
         </div>
       </div>
 
-      {/* TV DISPLAY BUTTON */}
       <div className="mt-12 flex justify-center pb-8">
         <Link 
           href="/tryouts-display" 

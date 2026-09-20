@@ -97,8 +97,8 @@ export default function FormsPage() {
     contactNumber: '',
     purpose: '',
     eventDateTime: '',
-    dateRequested: new Date().toISOString().split('T')[0], // Sets today's date automatically
-    locationType: 'Inside Campus', // Default selection
+    dateRequested: new Date().toISOString().split('T')[0], 
+    locationType: 'Inside Campus',
     locationOthersSpecify: '',
     numInstrumentalists: 0,
     numDancers: 0,
@@ -106,7 +106,6 @@ export default function FormsPage() {
     requestorName: ''
   });
   
-  //Sports tryout form
   const [generalForm, setGeneralForm] = useState({ name: '', studentId: '', degree: '', sport: '', position: '', experience: '', college: '', contact_number: '' });
 
   const handleSubmit = async (e: React.FormEvent, formType: string, formData: any) => {
@@ -220,10 +219,9 @@ export default function FormsPage() {
           if (uploadError) {
             console.error("Upload error:", uploadError);
             alert(`Failed to upload file: ${uploadError.message}`);
-            return; // Stop the form submission if the upload fails
+            return; 
           }
 
-          // 2. Get the Public URL of the uploaded file
           const { data: publicUrlData } = supabase.storage
             .from('dlc-documents')
             .getPublicUrl(fileName);
@@ -231,12 +229,11 @@ export default function FormsPage() {
           pdfUrl = publicUrlData.publicUrl;
         }
 
-        // 3. Insert the text data AND the new pdfUrl into the database
         response = await supabase.from('dlc_request').insert([{
           student_name: formData.studentName,
           contact_number: formData.contactNumber,
           purpose: formData.purpose,
-          event_data_time: formData.eventDateTime, // Left exactly as your original code
+          event_data_time: formData.eventDateTime, 
           date_requested: formData.dateRequested,
           location_type: formData.locationType,
           location_others_specify: formData.locationOthersSpecify,
@@ -244,8 +241,8 @@ export default function FormsPage() {
           num_dancers: formData.numDancers,
           other_requirements: formData.otherRequirements,
           requestor_name: formData.requestorName,
-          status: 'pending', // Explicitly setting pending!
-          pdf_url: pdfUrl    // Saving the link we just generated!
+          status: 'pending',
+          pdf_url: pdfUrl   
         }]);
       } 
       
@@ -590,18 +587,15 @@ export default function FormsPage() {
   />
 </div>
     
-    {/* --- UPDATED SCHEDULE BLOCK (Date Picker + Time Dropdown) --- */}
     <div className="row mb-3">
       <div className="col-md-6">
         <label className="form-label fw-medium">Preferred Date</label>
         <input 
           type="date" 
           className="form-control text-dark bg-light" 
-          /* Display only the date half of the string */
           value={gymForm.schedule ? gymForm.schedule.split('T')[0] : ''} 
           onChange={(e) => {
             const selectedDate = e.target.value;
-            // If they haven't picked a time yet, default to 9 AM so the database doesn't break
             const selectedTime = (gymForm.schedule && gymForm.schedule.includes('T')) 
               ? gymForm.schedule.split('T')[1] 
               : '09:00'; 
@@ -737,7 +731,6 @@ export default function FormsPage() {
 
 )}
 
-        {/* FORM 3: DRUM AND LYRE CORPS REQUEST */}
 {activeTab === 'dlc' && (
   <form onSubmit={(e) => handleSubmit(e, 'DLC Booking', dlcForm)}>
     <h3 className="mb-4 h5 fw-bold text-primary" style={{ fontFamily: 'Georgia, serif' }}>3. Drum and Lyre Corps (DLC) Event Request</h3>
@@ -901,7 +894,6 @@ export default function FormsPage() {
   />
 </div>
 
-    {/* PDF Upload Field */}
     <div className="mb-4 p-4 border border-gray-300 rounded bg-gray-50">
   <label className="form-label fw-medium d-block mb-2">
     Attach Supporting Document (Optional)
@@ -909,7 +901,6 @@ export default function FormsPage() {
   <input 
     type="file" 
     className="form-control text-dark bg-white" 
-    // Added image/png and image/jpeg to the accept filter
     accept="application/pdf,image/png,image/jpeg" 
     onChange={(e) => {
       if (e.target.files && e.target.files.length > 0) {
@@ -1022,7 +1013,6 @@ export default function FormsPage() {
     />
   </div>
 
-  {/* POSITION INPUT */}
   <div className="col-md-6 mt-3 mt-md-0">
     <label className="form-label fw-medium">Position</label>
     <input 
@@ -1059,7 +1049,6 @@ export default function FormsPage() {
   ></textarea>
 </div>
 
-    {/* College Selection (Radio buttons act like mutually exclusive checkboxes) */}
     <div className="mb-4">
       <label className="form-label fw-medium d-block">College Affiliation</label>
       {['CAA', 'CHASS', 'CCIS', 'CED', 'COFES', 'CMNS', 'CEGS', 'OTHERS'].map((college) => (

@@ -21,10 +21,8 @@ export default function GymHistoryPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc'); 
   
-  // NEW: State for the Year Filter
   const [selectedYear, setSelectedYear] = useState<string>("All");
 
-  // NEW: Magically extract all unique years from your data, sorted newest to oldest
   const availableYears = ["All", ...Array.from(new Set(logs.map(log => {
     if (!log.schedule) return "";
     return new Date(log.schedule).getFullYear().toString();
@@ -33,12 +31,11 @@ export default function GymHistoryPage() {
   const fetchHistoryLogs = async () => {
     setLoading(true);
 
-    // Fetch all records that are NO LONGER Pending
     const { data, error } = await supabase
       .from("gym_bookings")
       .select("*")
       .in('status', ['accepted', 'active', 'rejected', 'missed'])
-      .order('schedule', { ascending: false }); // Newest dates at the top
+      .order('schedule', { ascending: false });
 
     if (error) {
       console.error("SUPABASE FETCH ERROR:", error.message);
@@ -54,7 +51,6 @@ export default function GymHistoryPage() {
     fetchHistoryLogs();
   }, []);
 
-  // --- DELETE FUNCTION ---
   const handleDelete = async (id: number) => {
     if (!confirm("Are you sure you want to permanently delete this gym record?")) return;
 
@@ -68,7 +64,6 @@ export default function GymHistoryPage() {
     }
   };
 
-  // --- TIME SLOT FORMATTER (e.g., 8:00 AM - 9:00 AM) ---
   const getHourlySlot = (isoString: string) => {
     if (!isoString) return '';
     try {
@@ -96,15 +91,12 @@ export default function GymHistoryPage() {
 
 
 
-  // Filter by Search, Filter by Year, AND Sort the logs!
   const filteredLogs = logs
     .filter(log => {
-      // 1. Does it match the Search Bar?
       const matchesSearch = log.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                             log.student_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
                             log.status.toLowerCase().includes(searchQuery.toLowerCase());
       
-      // 2. Does it match the Year Dropdown?
       const logYear = log.schedule ? new Date(log.schedule).getFullYear().toString() : "";
       const matchesYear = selectedYear === "All" || logYear === selectedYear;
 
@@ -135,13 +127,10 @@ export default function GymHistoryPage() {
         
       </div>
 
-      {/* SEARCH AND TABLE */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         
-        {/* Search & Filter Bar */}
         <div className="p-4 border-b border-gray-100 bg-gray-50 flex flex-col sm:flex-row items-center justify-between gap-4">
           
-          {/* Left: Search */}
           <div className="flex items-center gap-3 w-full sm:max-w-md bg-white px-3 py-2 rounded-lg border border-gray-200 focus-within:ring-2 focus-within:ring-blue-500 transition shadow-sm">
             <FaSearch className="text-gray-400" />
             <input 
@@ -153,7 +142,6 @@ export default function GymHistoryPage() {
             />
           </div>
 
-         {/* Search & Filter Bar */}
         <div className="p-4 border-b border-gray-100 bg-gray-50 flex flex-col sm:flex-row items-center justify-between gap-4">
 
 
@@ -173,7 +161,6 @@ export default function GymHistoryPage() {
           
           
 
-          {/* Right: Sort Toggle Button */}
           <button 
             onClick={() => setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')}
             className="flex items-center justify-center gap-2 bg-gray-800 hover:bg-black text-white px-4 py-2 rounded font-bold transition"
@@ -238,7 +225,6 @@ export default function GymHistoryPage() {
                         }`}>
                           {log.status === 'active' ? 'Attended' : log.status}
                         </span>
-                        {/* Show rejection/ban reason if it exists */}
                         {log.feedback && <span className="text-[10px] text-gray-500 mt-1 max-w-[150px] truncate" title={log.feedback}>{log.feedback}</span>}
                       </div>
                     </td>

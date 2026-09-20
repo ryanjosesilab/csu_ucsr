@@ -41,7 +41,6 @@ export default function LoginPage() {
           className="h-62 w-auto object-contain z-10 animate-fire-flicker"
         />
         
-        {/* Hidden CSS just for the logo flicker */}
         <style dangerouslySetInnerHTML={{__html: `
           @keyframes fireFlicker {
             0%, 100% { 
@@ -68,16 +67,13 @@ export default function LoginPage() {
 
       <form className="w-full space-y-5" onSubmit={handleSubmit}>
         
-        {/* Error Message */}
         {errorMsg && (
           <div className="bg-red-500/80 backdrop-blur-md p-3 mb-4 !rounded-full text-center shadow-lg">
             <p className="text-sm text-white font-medium">{errorMsg}</p>
           </div>
         )}
 
-        {/* --- EMAIL FIELD --- */}
         <div className="relative">
-          {/* ADDED z-10: Forces the icon to sit in front of the frosted glass background */}
           <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none z-10">
             <FaUser className="text-white/70 text-lg" />
           </div>
@@ -95,9 +91,7 @@ export default function LoginPage() {
           />
         </div>
 
-        {/* --- PASSWORD FIELD --- */}
         <div className="relative">
-          {/* ADDED z-10: Forces the icon to sit in front of the frosted glass background */}
           <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none z-10">
             <FaLock className="text-white/70 text-lg" />
           </div>
@@ -114,7 +108,6 @@ export default function LoginPage() {
             placeholder="password..."
           />
           
-          {/* Eye Icon (Already worked because it is a button with an active z-index) */}
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
@@ -128,7 +121,6 @@ export default function LoginPage() {
           </button>
         </div>
 
-        {/* --- SUBMIT BUTTON --- */}
         <div className="pt-4">
           <button
             type="submit"

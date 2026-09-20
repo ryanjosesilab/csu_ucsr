@@ -146,7 +146,7 @@ export default function ArchivePage() {
           <tbody>
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={6} className="p-8 text-center text-gray-500 italic"> {/* colSpan updated to 6 */}
+                <td colSpan={6} className="p-8 text-center text-gray-500 italic"> 
                   No records match your filters.
                 </td>
               </tr>
@@ -171,7 +171,6 @@ export default function ArchivePage() {
                 <td className="p-4 text-gray-600">{student.location_type}</td>
                 <td className="p-4 text-gray-600">{student.contact_number}</td>
                 
-                {/* NEW ACTION COLUMN */}
                 <td className="p-4 flex flex-col items-center justify-center gap-2 w-full">
   <button 
     onClick={() => handleRetrieve(student.id)}

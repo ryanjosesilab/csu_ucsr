@@ -66,10 +66,8 @@ export default function DLCAdminPage() {
     setExpandedRows(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  // Band Requests (All active, unprinted requests)
   const bandRequests = requests; 
   
-  // Bookmarked Requests
   const bookmarkedRequests = requests.filter(r => r.is_bookmarked);
 
   useEffect(() => {
@@ -163,7 +161,6 @@ export default function DLCAdminPage() {
         </div>
       </div>
 
-      {/* ================= BAND REQUESTS TABLE ================= */}
       <h2 className="text-xl font-bold mb-4 text-yellow-600 flex items-center gap-2">
         <FaFileAlt /> Band Requests ({bandRequests.length})
       </h2>
@@ -221,7 +218,6 @@ export default function DLCAdminPage() {
                     </p>
                   </td>
 
-                  {/* Bookmark Toggle Action */}
                   <td className="p-4 text-center align-middle">
                     <button 
                       onClick={(e) => {
@@ -245,7 +241,6 @@ export default function DLCAdminPage() {
                   </td>
                 </tr>
 
-                {/* EXPANDED ROW (Details & Preview) */}
                 {expandedRows[req.id] && (
                   <tr className="bg-gray-50">
                     <td colSpan={7} className="p-0 border-b-2 border-yellow-200">
@@ -254,7 +249,6 @@ export default function DLCAdminPage() {
                           Attached Document & Details
                         </h4>
 
-                        {/* PDF / Document VIEWER */}
                         {req.pdf_url ? (
                           <div className="w-full h-[600px] bg-gray-200 rounded border border-gray-300 overflow-hidden mb-6">
                             <object 
@@ -324,7 +318,6 @@ export default function DLCAdminPage() {
         </table>
       </div>
 
-      {/* ================= BOOKMARKS TABLE ================= */}
       <h2 className="text-xl font-bold mb-4 text-amber-600 flex items-center gap-2">
         <FaBookmark /> Bookmarked Requests ({bookmarkedRequests.length})
       </h2>
@@ -382,7 +375,6 @@ export default function DLCAdminPage() {
                   </td>
                 </tr>
 
-                {/* EXPANDED ROW (Bookmarks Details & Preview) */}
                 {expandedRows[req.id] && (
                   <tr className="bg-gray-50">
                     <td colSpan={8} className="p-0 border-b-2 border-amber-200">
@@ -391,7 +383,6 @@ export default function DLCAdminPage() {
                           Attached Document & Details
                         </h4>
 
-                        {/* PDF / Document VIEWER */}
                         {req.pdf_url ? (
                           <div className="w-full h-[600px] bg-gray-200 rounded border border-gray-300 overflow-hidden mb-6">
                             <object 

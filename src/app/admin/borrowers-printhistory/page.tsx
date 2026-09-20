@@ -77,7 +77,6 @@ export default function EquipmentHistoryPage() {
     fetchHistoryLogs();
   }, []);
 
-  // NEW: handleRetrieve function
   const handleRetrieve = async (id: string) => {
     if (!confirm("Are you sure you want to move this record back to Pending Requests?")) return;
 
@@ -90,7 +89,6 @@ export default function EquipmentHistoryPage() {
       console.error("Error retrieving record:", error);
       alert("Failed to retrieve record.");
     } else {
-      // Remove it from the history list since it is now Pending again
       setLogs(prev => prev.filter(log => log.id !== id));
     }
   };
@@ -102,7 +100,6 @@ export default function EquipmentHistoryPage() {
   }))).filter(Boolean).sort((a, b) => Number(b) - Number(a));
 
   const filteredLogs = logs.filter(log => {
-    // 1. Search Query
     const matchesSearch = log.borrowerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           log.purpose.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           log.dateBorrowed.includes(searchQuery);

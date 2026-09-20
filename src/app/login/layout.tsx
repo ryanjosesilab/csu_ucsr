@@ -8,8 +8,7 @@ export default function LoginLayout({
   return (
     <div className="min-h-screen w-screen flex flex-col justify-center items-center py-12 sm:px-6 lg:px-8 relative overflow-hidden bg-gray-900">
       
-      {/* Animated Background Image Wrapper */}
-      {/* Removed "scale-105" from className since our CSS handles the scaling now */}
+   
       <div 
         className="absolute inset-0 bg-[length:100%_auto] bg-center bg-no-repeat z-0"
         style={{ 

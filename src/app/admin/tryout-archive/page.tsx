@@ -19,7 +19,6 @@ export default function TryoutsArchivePage() {
   const [is_archived, setArchived] = useState<Student[]>([]);
   const [search, setSearch] = useState('');
   
-  // States for Sorting and Filtering
   const [selectedDate, setSelectedDate] = useState('');
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'accepted' | 'rejected'>('all');
@@ -170,7 +169,6 @@ export default function TryoutsArchivePage() {
                 </td>
                 <td className="p-4 text-gray-600 dark:text-gray-400">{student.contact_number}</td>
                 
-                {/* 4. FIX FOR THE BUTTON AND DROPDOWN */}
                 <td className="p-4 flex flex-col items-center justify-center gap-2 w-full">
                   
 

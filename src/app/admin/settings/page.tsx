@@ -6,10 +6,10 @@ export default function SettingsPage() {
   const [settings, setSettings] = useState({
     director_name: '',
     director_title: '',
-    property_custodian_name: '', // NEW
-    dlc_band_master_name: '',    // NEW
-    tryout_contact_name: '',     // NEW
-    tryout_contact_title: '',    // NEW
+    property_custodian_name: '', 
+    dlc_band_master_name: '',    
+    tryout_contact_name: '',     
+    tryout_contact_title: '',    
     coaches_list: [] as string[]
   });
   
@@ -22,7 +22,6 @@ export default function SettingsPage() {
   const fetchSettings = async () => {
     const { data } = await supabase.from('settings').select('*').single();
     if (data) {
-      // We merge with default empty strings to prevent React "uncontrolled input" warnings if a field is null in the database
       setSettings({
         director_name: data.director_name || '',
         director_title: data.director_title || '',
@@ -39,7 +38,7 @@ export default function SettingsPage() {
     const { error } = await supabase
       .from('settings')
       .update(settings)
-      .eq('id', 1); // Assuming your settings table has ID 1
+      .eq('id', 1); 
 
     if (error) {
       alert("Error saving settings. Did you add the new columns to Supabase?");
@@ -60,7 +59,6 @@ export default function SettingsPage() {
     <div className="p-8 max-w-2xl mx-auto pb-20">
      <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:!text-white">System Settings</h1>
       
-      {/* 1. Director Settings */}
       <div className="bg-white p-6 rounded shadow mb-6 border-t-4 border-blue-600">
         <h2 className="font-bold mb-4 text-gray-700">Director Information (Main Signatory)</h2>
         <input 
@@ -77,7 +75,6 @@ export default function SettingsPage() {
         />
       </div>
 
-      {/* 2. Property Custodian Settings (NEW) */}
       <div className="bg-white p-6 rounded shadow mb-6 border-t-4 border-green-600">
         <h2 className="font-bold mb-4 text-gray-700">UCSR Property Custodian</h2>
         <p className="text-xs text-gray-500 mb-3">This name will appear on the Equipment Borrowing forms.</p>
@@ -89,7 +86,6 @@ export default function SettingsPage() {
         />
       </div>
 
-      {/* 3. DLC Band Master Settings (NEW) */}
       <div className="bg-white p-6 rounded shadow mb-6 border-t-4 border-yellow-500">
         <h2 className="font-bold mb-4 text-gray-700">DLC Band Master</h2>
         <p className="text-xs text-gray-500 mb-3">This name will appear on the Drum & Lyre Corps request forms.</p>
@@ -101,7 +97,6 @@ export default function SettingsPage() {
         />
       </div>
 
-      {/* 4. Tryouts Contact Person Settings (NEW) */}
       <div className="bg-white p-6 rounded shadow mb-6 border-t-4 border-purple-600">
         <h2 className="font-bold mb-4 text-gray-700">Tryouts Contact Person (For Accepted Students)</h2>
         <p className="text-xs text-gray-500 mb-3">This person will be listed on the printout to instruct accepted students on who to approach next.</p>
@@ -119,7 +114,6 @@ export default function SettingsPage() {
         />
       </div>
 
-      {/* Coaches List */}
       <div className="bg-white p-6 rounded shadow mb-6 border-t-4 border-gray-600">
         <h2 className="font-bold mb-4 text-gray-700">Manage Evaluator Coaches</h2>
         <div className="flex gap-2 mb-4">
@@ -149,7 +143,6 @@ export default function SettingsPage() {
         </ul>
       </div>
 
-      {/* Save Button */}
       <button 
         onClick={saveSettings} 
         className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-bold w-full shadow-lg transition-colors text-lg"

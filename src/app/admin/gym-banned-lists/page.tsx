@@ -37,7 +37,7 @@ export default function GymBannedListsPage() {
       .gt('banned_until', now); 
 
     const autoBans: BannedStudent[] = (students || []).map((s) => ({
-      studentId: String(s.student_id), // Ensure it reads as string in our app
+      studentId: String(s.student_id), 
       type: 'Auto',
       expiresAt: s.banned_until
     }));
@@ -50,11 +50,9 @@ export default function GymBannedListsPage() {
       fetchBannedList();
     }, []);
 
-  // 🔴 PERMANENT BAN
   const handleAddBan = async (e?: React.FormEvent) => {
     if (e) e.preventDefault(); 
 
-    // 🔥 SECRETLY STRIPS THE DASH SO THE DATABASE DOESN'T CRASH
     const idToAdd = newStudentId.trim().replace(/-/g, '');
     if (!idToAdd) return;
 
@@ -78,11 +76,9 @@ export default function GymBannedListsPage() {
     }
   };
 
-  // 🟠 TEMPORARY BAN
   const handleTempBan = async (e?: React.MouseEvent) => {
     if (e) e.preventDefault(); 
 
-    // 🔥 SECRETLY STRIPS THE DASH SO THE DATABASE DOESN'T CRASH
     const idToAdd = newStudentId.trim().replace(/-/g, '');
     if (!idToAdd) return;
 
@@ -116,7 +112,6 @@ export default function GymBannedListsPage() {
         return;
       }
 
-      // Alerts you if that ID hasn't been registered in the database yet
       if (!data || data.length === 0) {
         alert(`Failed: Student ID "${idToAdd}" was not found in the students table.`);
         return;
@@ -136,10 +131,8 @@ export default function GymBannedListsPage() {
   const handleUnban = async (student: BannedStudent) => {
     if (!confirm(`Are you sure you want to unban Student ID: ${student.studentId}?`)) return;
 
-    // 1. Save the old list in case we need to revert
     const previousList = [...bannedList];
 
-    // 2. Optimistic Update (Instantly hide from screen)
     setBannedList((prevList) => 
       prevList.filter((b) => String(b.studentId) !== String(student.studentId))
     );
@@ -158,7 +151,6 @@ export default function GymBannedListsPage() {
           (id: string | number) => String(id).trim() !== String(student.studentId).trim()
         );
 
-        // 🔥 ADDED .select() HERE: Forces DB to confirm the row was actually changed
         const { data: updateData, error: updateError } = await supabase
           .from('settings')
           .update({ banned_gym_students: updatedList })
@@ -167,13 +159,11 @@ export default function GymBannedListsPage() {
 
         if (updateError) throw updateError;
         
-        // If data comes back empty, the database rejected our update
         if (!updateData || updateData.length === 0) {
           throw new Error("Action blocked! Your Admin session may have expired. Please log out and log back in.");
         }
 
       } else if (student.type === 'Auto') {
-        // 🔥 ADDED .select() HERE: Forces DB to confirm the row was actually changed
         const { data: updateData, error: updateError } = await supabase
           .from('students')
           .update({ banned_until: null })
@@ -182,26 +172,21 @@ export default function GymBannedListsPage() {
 
         if (updateError) throw updateError;
 
-        // If data comes back empty, the database rejected our update
         if (!updateData || updateData.length === 0) {
           throw new Error(`Student ${student.studentId} was not found, or the action was blocked by security policies.`);
         }
       }
 
-      // 3. Fully sync with database to ensure perfection
       fetchBannedList();
 
     } catch (err: any) {
       console.error("Critical Unban Error:", err);
-      // 🔥 This alert will now tell you exactly what is failing
       alert(`Database Error: ${err.message}`);
       
-      // Revert the screen back to how it was since the database failed
       setBannedList(previousList);
     }
   };
 
-  // 🔥 SMART SEARCH: Lets you search with OR without dashes!
   const filteredList = bannedList.filter(b => {
     const normalizedId = String(b.studentId).replace(/-/g, '').toLowerCase();
     const normalizedSearch = searchQuery.replace(/-/g, '').toLowerCase();
@@ -312,7 +297,7 @@ export default function GymBannedListsPage() {
                       </div>
                       
                       <div>
-                        {/* Optionally you can add dashes back in visually here if you wanted, but raw is fine too! */}
+                        
                         <p className="font-bold text-gray-900 dark:!text-white tracking-wide">{String(student.studentId).replace(/-/g, '')}</p>
                         
                         {student.type === 'Manual' ? (

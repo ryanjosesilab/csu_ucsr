@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../../utils/supabase'; // Adjust path if necessary
+import { supabase } from '../../utils/supabase'; 
 
 interface Student {
   id: string;
@@ -20,7 +20,6 @@ export default function TryoutsDisplayPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      // 1. Fetch active tryout submissions
       const { data: studentData, error: studentError } = await supabase
         .from('tryout_submissions')
         .select('*')
@@ -29,7 +28,6 @@ export default function TryoutsDisplayPage() {
       if (studentData) setStudents(studentData);
       if (studentError) console.error("Error fetching students:", studentError);
 
-      // 2. Fetch Settings for Tryouts Contact Person
       const { data: settingsData, error: settingsError } = await supabase
         .from('settings')
         .select('tryout_contact_name, tryout_contact_title')
@@ -42,10 +40,8 @@ export default function TryoutsDisplayPage() {
       if (settingsError) console.error("Error fetching settings:", settingsError);
     };
 
-    // Fetch immediately on load
     fetchData();
 
-    // Auto-refresh data every 10 seconds for the TV display!
     const interval = setInterval(fetchData, 10000);
     return () => clearInterval(interval);
   }, []);
@@ -84,7 +80,6 @@ export default function TryoutsDisplayPage() {
           </table>
         </div>
 
-        {/* TABLE 2: REJECTED (ID, Course) */}
         <div className="bg-white rounded-xl shadow-lg border-t-8 border-red-500 overflow-hidden">
           <div className="bg-red-50 p-4 border-b border-red-200">
             <h2 className="text-2xl font-bold text-red-800 text-center uppercase">Not Selected</h2>
@@ -107,8 +102,6 @@ export default function TryoutsDisplayPage() {
         </div>
       </div>
 
-{/* SECTION: ACCEPTED STUDENTS */}
-      {/* SECTION: ACCEPTED STUDENTS */}
       <div className="mt-12 bg-white rounded-xl shadow-lg border-t-8 border-green-600 overflow-hidden">
         <div className="bg-green-50 p-6 border-b border-green-200 text-center">
           <h2 className="text-3xl font-extrabold text-green-900 uppercase tracking-wider">Accepted Students</h2>

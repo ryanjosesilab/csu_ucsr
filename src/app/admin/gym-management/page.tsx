@@ -87,7 +87,6 @@ export default function GymManagementPage() {
   const monthDays = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-  // -----------------------------------------
 
 
   const fetchSettings = async () => {
@@ -173,7 +172,6 @@ export default function GymManagementPage() {
   };
 
   const handleAccept = async (req: GymBooking) => {
-    // 1. Check current capacity before accepting
     const { count, error: countError } = await supabase
       .from('gym_bookings')
       .select('id', { count: 'exact', head: true })
@@ -185,13 +183,11 @@ export default function GymManagementPage() {
       return;
     }
     
-    // 2. Block the admin if there are already 5 accepted/active students
     if (count !== null && count >= 5) {
       alert("This time slot is already full (5/5). Please reject the remaining pending requests.");
       return;
     }
 
-    // 3. If space is available, proceed with accepting
     const { error } = await supabase
       .from('gym_bookings')
       .update({ status: 'accepted', feedback: null })
@@ -694,11 +690,9 @@ const filteredPendingRequests = pendingRequests.filter(req => {
               return (
                 <li key={req.id} className={`p-4 bg-white border rounded-lg shadow-sm ${isLate ? 'border-orange-400' : 'border-gray-200'}`}>
                   <div className="flex justify-between items-start mb-3 gap-2">
-                    {/* 🔥 ADDED flex-1 here. This acts as a boundary so it doesn't push the badge out! */}
                     <div className="flex-1 min-w-0">
                       <p className="font-bold truncate">{req.name}</p>
                       
-                      {/* 🔥 NEW EDIT TIME LOGIC FOR ATTENDANCE TAB */}
                       {editingScheduleId === req.id ? (
                         <div className="flex flex-wrap items-center gap-2 mt-1">
                           <input 
@@ -733,10 +727,8 @@ const filteredPendingRequests = pendingRequests.filter(req => {
                           </button>
                         </div>
                       )}
-                      {/* 🔥 END NEW EDIT LOGIC */}
 
                     </div>
-                    {/* 🔥 Badge remains locked in place */}
                     <span className={`shrink-0 whitespace-nowrap text-[10px] font-bold px-2 py-1 rounded ${isLate ? 'bg-orange-500 text-white' : 'bg-gray-200 dark:bg-green-700 text-green-800 dark:text-gray-200'}`}>
                       {isLate ? 'Overdue / Late' : 'Awaiting Entry'}
                     </span>

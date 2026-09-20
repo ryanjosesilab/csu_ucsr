@@ -37,7 +37,6 @@ export default function InventoryManagerPage() {
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
-  // --- CALENDAR STATES ---
   const getLocalToday = () => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -62,7 +61,6 @@ export default function InventoryManagerPage() {
   const blankDays = Array.from({ length: firstDayOfMonth }, (_, i) => i);
   const monthDays = Array.from({ length: daysInMonth }, (_, i) => i + 1);
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-  // -----------------------
 
   const fetchLogs = async () => {
     setLoading(true);
@@ -178,7 +176,6 @@ export default function InventoryManagerPage() {
     }
   };
 
-  // --- FILTERING FOR UI ---
   const pendingLogs = logs.filter(log => log.status.toLowerCase() === 'pending');
   const activeLogs = logs.filter(log => log.status.toLowerCase() === 'approved');
 
@@ -227,7 +224,6 @@ export default function InventoryManagerPage() {
 
     </div>
 
-      {/* ================= SECTION 1: PENDING REQUESTS ================= */}
       <section className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex items-center">
             <h2 className="text-lg font-bold text-gray-800">Pending Equipment Requests</h2>
@@ -297,7 +293,6 @@ export default function InventoryManagerPage() {
         </div>
       </section>
 
-      {/* ================= SECTION 2 & 3: CALENDAR & ACTIVE LIST ================= */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* CALENDAR */}

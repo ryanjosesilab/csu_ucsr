@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../../../../../utils/supabase'; // Make sure this path matches your folder structure
+import { supabase } from '../../../../../utils/supabase';  
 import { useParams } from 'next/navigation';
 
 export default function PrintStudentForm() {
@@ -9,7 +9,6 @@ export default function PrintStudentForm() {
 
   useEffect(() => {
     const fetchStudent = async () => {
-      // Fetching '*' ensures we grab the contact_number
       const { data } = await supabase
         .from('tryout_submissions')
         .select('*')
@@ -18,7 +17,6 @@ export default function PrintStudentForm() {
 
       if (data) {
         setStudent(data);
-        // Tiny delay ensures data paints on screen before the print dialog opens
         setTimeout(() => { window.print(); }, 800);
       }
     };
@@ -33,7 +31,6 @@ export default function PrintStudentForm() {
     // Fixed dimensions ensure it behaves like a standard piece of paper
     <div className="bg-white text-black h-[1050px] w-[816px] mx-auto pt-4 px-10 pb-6 border border-gray-200 flex flex-col relative" style={{ fontFamily: 'Arial, sans-serif' }}>
       
-      {/* 1. HEADER SECTION */}
       <div className="flex justify-between items-center mb-3">
         <div className="w-[380px] h-[80px]">
           <img src="/UCSR_HEADER.png" alt="CSU Header" className="w-full h-full object-contain object-left" />
@@ -45,7 +42,6 @@ export default function PrintStudentForm() {
 
       <h2 className="text-center font-bold text-sm mb-3 uppercase tracking-wide">Try-Out Form</h2>
 
-      {/* 2. PERSONAL INFO SECTION */}
       <div className="text-xs space-y-2 mb-3">
         <div className="flex items-end gap-2">
           <span className="font-bold whitespace-nowrap">Name:</span>
@@ -69,10 +65,8 @@ export default function PrintStudentForm() {
         </div>
       </div>
 
-      {/* DIVIDER ABOVE COLLEGE */}
       <div className="border-b-[1px] border-black mb-3"></div>
 
-      {/* 3. COLLEGE CHECKBOXES */}
       <div className="text-xs mb-3">
         <p className="font-bold mb-2">College (check the box below)</p>
         <div className="grid grid-cols-4 gap-4 px-8">
@@ -86,16 +80,13 @@ export default function PrintStudentForm() {
 
             return (
               <div key={college} className="flex items-center gap-2">
-                {/* The Checkbox */}
                 <div className="w-4 h-4 border-[1px] border-black flex items-center justify-center text-[10px] font-bold">
                   {isThisBoxChecked ? '✓' : ''}
                 </div>
                 
-                {/* The Label & Line */}
                 {college === 'Others' ? (
                   <div className="flex items-end gap-1">
                     <span>Others:</span>
-                    {/* If it's a custom college, print it on the line. Otherwise, leave it blank. */}
                     <span className="border-b-[1px] border-black w-24 pb-0 text-center px-1 truncate">
                       {isCustomCollege ? student.college : ''}
                     </span>
@@ -109,10 +100,8 @@ export default function PrintStudentForm() {
         </div>
       </div>
 
-      {/* DIVIDER BELOW COLLEGE */}
       <div className="border-b-[1px] border-black mb-3"></div>
 
-      {/* 4. SCREENING SECTION */}
       <div className="text-xs mb-3">
         <p className="font-bold mb-1">Screening</p>
         <p className="font-semibold mb-2">Physical Attributes: (9 points-highest and 1 point-lowest)</p>
@@ -142,7 +131,6 @@ export default function PrintStudentForm() {
         </div>
       </div>
 
-      {/* 5. SKILLS & ATTITUDE SECTION */}
       <div className="flex text-xs px-4 mb-4">
         <div className="w-1/2">
           <p className="font-bold mb-2">Skills</p>
@@ -169,7 +157,6 @@ export default function PrintStudentForm() {
         </div>
       </div>
 
-      {/* 6. FOOTER REMARKS & SIGNATURES */}
       <div className="text-xs space-y-3">
         <div className="flex items-end gap-2">
           <span className="font-bold">Remarks:</span>
@@ -200,12 +187,10 @@ export default function PrintStudentForm() {
         </div>
       </div>
 
-      {/* 7. DOCUMENT CODE - Forced to absolute bottom by mt-auto */}
       <div className="mt-auto text-[9px] text-gray-800 border-t-[1px] border-black pt-1">
         <p>F-CSU-SPR-RF002, Rev.2, 12/12/2023</p>
       </div>
 
-      {/* 8. PRINT CSS FIXES */}
       <style dangerouslySetInnerHTML={{__html: `
         @media print {
           /* Forces backgrounds, lines, and checkboxes to print */
