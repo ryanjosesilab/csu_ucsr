@@ -28,12 +28,12 @@ export default function FormsPage() {
     const checkSystemSettings = async () => {
       const { data, error } = await supabase
         .from('settings')
-        .select('is_tryout_active, is_gym_active, gym_closed_reason') // 🔥 UPDATED
+        .select('is_tryout_active, is_gym_active, gym_closed_reason') 
         .single();
       
       if (data) {
         setIsTryoutActive(data.is_tryout_active);
-        setIsGymActive(data.is_gym_active !== false); // Defaults to true
+        setIsGymActive(data.is_gym_active !== false); 
         setGymClosedReason(data.gym_closed_reason || "Currently unavailable.");
       }
       setLoading(false);
@@ -41,7 +41,6 @@ export default function FormsPage() {
     checkSystemSettings();
   }, []);
 
-  //Fitness Gym Session Form
   const [gymForm, setGymForm] = useState({ 
     name: '', 
     studentId: '', 
@@ -68,20 +67,18 @@ export default function FormsPage() {
       return;
     }
 
-    // 1. Get today's local date at midnight to filter out past days
     const now = new Date();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const day = String(now.getDate()).padStart(2, '0');
     const startOfToday = `${year}-${month}-${day}T00:00:00`;
 
-    // 2. Fetch data matching Student ID AND scheduled from today onwards
     const { data, error } = await supabase
       .from('gym_bookings')
       .select('student_id, schedule, status, feedback')
       .eq('student_id', statusSearchId)
-      .gte('schedule', startOfToday) // Filters out everything before today
-      .order('schedule', { ascending: true }); // Changed to 'true' so today/tomorrow show at the top
+      .gte('schedule', startOfToday) 
+      .order('schedule', { ascending: true }); 
 
     if (error) {
       console.error(error);
@@ -159,7 +156,6 @@ export default function FormsPage() {
           return; 
         }
 
-        // 3. Check if they already have a request FOR THIS SPECIFIC DAY (Spam Prevention)
         const requestedDate = formData.schedule.split('T')[0]; 
         const startOfDay = new Date(`${requestedDate}T00:00:00`).toISOString();
         const endOfDay = new Date(`${requestedDate}T23:59:59`).toISOString();
@@ -167,7 +163,7 @@ export default function FormsPage() {
         const { data: existingDayRequest } = await supabase
           .from('gym_bookings')
           .select('id, status')
-          .eq('student_id', formData.studentId) // Keep this one with the dash if gym_bookings uses it!
+          .eq('student_id', formData.studentId) 
           .gte('schedule', startOfDay) 
           .lte('schedule', endOfDay)   
           .in('status', ['pending', 'accepted', 'active']) 
@@ -179,9 +175,29 @@ export default function FormsPage() {
           setIsSubmitting(false);
           return; 
         }
-        // --- END SECURITY CHECKS ---
 
-        // Keep the database insert exactly the same...
+        const exactSlotISO = new Date(formData.schedule).toISOString();
+        
+        const { count: slotCount, error: slotError } = await supabase
+          .from('gym_bookings')
+          .select('id', { count: 'exact', head: true }) 
+          .eq('schedule', exactSlotISO)
+          .in('status', ['accepted', 'active']);
+
+        if (slotError) {
+          console.error("Error checking slot capacity:", slotError);
+          alert("Error verifying slot availability. Please try again.");
+          setIsSubmitting(false);
+          return;
+        }
+
+        if (slotCount !== null && slotCount >= 5) {
+          alert("Slot full, Pick another Slot");
+          setIsSubmitting(false);
+          return;
+        }
+
+
         response = await supabase.from('gym_bookings').insert([{
           name: formData.name,
           student_id: formData.studentId,
@@ -249,12 +265,10 @@ export default function FormsPage() {
           return;
         }
 
-        // 2. If they have an active pending, accepted, or recently rejected form, block them.
         if (existingApp && existingApp.length > 0) {
           alert("You have already applied for this tryout season and cannot submit another request at this time.");
-          return; // Stop form submission
+          return; 
         }
-        // --- END NEW LOGIC ---
 
         response = await supabase.from('tryout_submissions').insert([{
           name: formData.name,
@@ -268,14 +282,12 @@ export default function FormsPage() {
         }]);
       }
 
-      // CRITICAL: Check if response exists and if there was an error
       if (response?.error) {
         console.error("Supabase Error:", response.error);
         alert(`Submission failed: ${response.error.message}`);
-        return; // Stop here so the page doesn't refresh
+        return; 
       }
 
-      // Success logic
       let customMessage = "Request submitted successfully! Proceed to the sports office for consultation.";
       if (formType === 'Gym Session') customMessage = "Gym session requested! Wait for approval.";
       else if (formType === 'Equipment Borrowing') customMessage = "Equipment request sent! Proceed to the office and present your ID for pickup.";
@@ -298,7 +310,6 @@ export default function FormsPage() {
 
     <div className="container py-5 my-5">
       
-      {/* Page Header */}
       <div className="text-center mb-5" data-aos="fade-up">
         <h1 className="fw-bold" style={{ fontFamily: 'Georgia, serif', color: '#212529' }}>
           UCSR Request Forms Portal
@@ -308,7 +319,6 @@ export default function FormsPage() {
         </p>
       </div>
 
-      {/* Navigation Tabs */}
       <div className="d-flex flex-wrap justify-content-center gap-2 mb-5" data-aos="fade-up" data-aos-delay="100">
         <button 
           className={`btn px-4 py-2 fw-semibold ${activeTab === 'equipment' ? 'btn-primary shadow-sm' : 'btn-outline-primary'}`} 
@@ -350,7 +360,6 @@ export default function FormsPage() {
 
       <div className="card shadow border-0 p-4 p-md-5 mx-auto bg-white" style={{ maxWidth: '650px', borderRadius: '12px', backgroundColor: '#ffffff' }} data-aos="fade-up" data-aos-delay="200">
         
-        {/* FORM 1: SPORTS EQUIPMENT BORROWING */}
     {activeTab === 'equipment' && (
     <form onSubmit={(e) => handleSubmit(e, 'Equipment Borrowing', equipmentForm)}>
     <h3 className="mb-4 h5 fw-bold text-primary" style={{ fontFamily: 'Georgia, serif' }}>1. UCSR Borrower's Form</h3>
@@ -469,7 +478,6 @@ export default function FormsPage() {
 
      {equipmentForm.itemsList.map((item, index) => (
     <div className="row g-2 mb-2 align-items-end" key={index}>
-      {/* Equipment Name (col-5) */}
       <div className="col-5">
         {index === 0 && <label className="form-label small text-muted mb-1">Equipment</label>}
         <input 
@@ -625,7 +633,6 @@ export default function FormsPage() {
       </div>
     </div>
     
-    {/* Explicit Yes/No Radio options acting as strict clean selections */}
     <div className="mb-4">
       <label className="form-label fw-medium d-block">Are you an employee of CSU?</label>
       <div className="form-check form-check-inline">
@@ -659,16 +666,14 @@ export default function FormsPage() {
     <div className="mt-5 p-4 bg-white border rounded shadow-sm">
       <h4 className="fw-bold mb-3 text-secondary">Check Gym Booking Status</h4>
       
-      {/* NEW: Search Bar for Privacy */}
       <div className="input-group mb-4">
   <input 
     type="text" 
     className="form-control bg-light text-dark" 
     placeholder="Enter your Student ID (e.g., 201-XXXXX)" 
     value={statusSearchId}
-    maxLength={9} // Limits to 9 characters
+    maxLength={9} 
     onChange={(e) => {
-      // Allows only numbers (0-9) and the dash (-)
       const sanitizedValue = e.target.value.replace(/[^0-9\-]/g, '');
       setStatusSearchId(sanitizedValue);
     }}
@@ -696,7 +701,6 @@ export default function FormsPage() {
                 <tr key={index}>
                   <td>{new Date(booking.schedule).toLocaleString()}</td>
                   <td>
-                    {/* Status Badge */}
                     <span className={`badge ${
                       booking.status === 'accepted' || booking.status === 'active' ? 'bg-success' : 
                       booking.status === 'rejected' || booking.status === 'missed' ? 'bg-danger' : 'bg-warning text-dark'
@@ -704,14 +708,12 @@ export default function FormsPage() {
                       {booking.status || 'pending'}
                     </span>
 
-                    {/* NEW: Admin Feedback Display */}
                     {booking.status === 'rejected' && booking.feedback && (
                       <div className="mt-2 p-2 bg-danger bg-opacity-10 border border-danger rounded text-danger small">
                         <strong>Admin Note:</strong> {booking.feedback}
                       </div>
                     )}
                     
-                    {/* Missed Penalty Notification */}
                     {booking.status === 'missed' && (
                       <div className="mt-2 text-danger small">
                         <strong>Note:</strong> You missed this schedule and incurred a 3-day penalty.
@@ -801,7 +803,6 @@ export default function FormsPage() {
   />
 </div>
 
-    {/* Location Settings (Radio buttons that look/act like specific checkboxes) */}
     <div className="mb-3">
       <label className="form-label fw-medium d-block">Event Location Classification</label>
       <div className="form-check form-check-inline">
@@ -823,10 +824,9 @@ export default function FormsPage() {
       className="form-control text-dark bg-light" 
       placeholder="Type details..." 
       value={dlcForm.locationOthersSpecify} 
-      maxLength={30} // 1. Limit to 30 characters
+      maxLength={30} 
       onChange={(e) => {
-        // 2. This regex allows: Letters (a-z, A-Z), Numbers (0-9), and Spaces (\s).
-        // Anything else is instantly deleted.
+      
         const sanitizedValue = e.target.value.replace(/[^a-zA-Z0-9\s]/g, '');
         setDlcForm({...dlcForm, locationOthersSpecify: sanitizedValue});
       }} 
@@ -928,7 +928,6 @@ export default function FormsPage() {
   </form>
 )}
 
-       {/* FORM 4: SPORTS TRYOUTS FORM */}
 {activeTab === 'general' && (
   <>
     {isTryoutActive === false ? (
@@ -946,7 +945,7 @@ export default function FormsPage() {
     type="text" 
     className="form-control text-dark bg-light" 
     value={generalForm.name || ''} 
-    maxLength={30} // 1. Limit to 30 characters
+    maxLength={30} 
     onChange={(e) => {
       const sanitizedValue = e.target.value.replace(/[^a-zA-Z\s\-']/g, '');
       setGeneralForm({...generalForm, name: sanitizedValue});
@@ -1005,7 +1004,6 @@ export default function FormsPage() {
 </div>
 
    <div className="row mb-3">
-  {/* EVENT / SPORT INPUT */}
   <div className="col-md-6">
     <label className="form-label fw-medium">Event / Sport</label>
     <input 

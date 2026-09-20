@@ -172,14 +172,33 @@ export default function GymManagementPage() {
     }
   };
 
-  const handleAccept = async (id: number) => {
+  const handleAccept = async (req: GymBooking) => {
+    // 1. Check current capacity before accepting
+    const { count, error: countError } = await supabase
+      .from('gym_bookings')
+      .select('id', { count: 'exact', head: true })
+      .eq('schedule', req.schedule)
+      .in('status', ['accepted', 'active']);
+      
+    if (countError) {
+      alert("Error checking slot capacity.");
+      return;
+    }
+    
+    // 2. Block the admin if there are already 5 accepted/active students
+    if (count !== null && count >= 5) {
+      alert("This time slot is already full (5/5). Please reject the remaining pending requests.");
+      return;
+    }
+
+    // 3. If space is available, proceed with accepting
     const { error } = await supabase
       .from('gym_bookings')
       .update({ status: 'accepted', feedback: null })
-      .eq('id', id);
+      .eq('id', req.id);
 
     if (!error) {
-      setRequests(prev => prev.map(req => req.id === id ? { ...req, status: 'accepted' } : req));
+      setRequests(prev => prev.map(r => r.id === req.id ? { ...r, status: 'accepted' } : r));
     }
   };
 
@@ -508,7 +527,7 @@ const filteredPendingRequests = pendingRequests.filter(req => {
             </select>
           </td>
           <td className="p-4 flex justify-center gap-2">
-            <button onClick={() => handleAccept(req.id)} className="bg-[#0F4E15] hover:bg-green-700 text-white px-3 py-1.5 rounded flex items-center text-xs font-bold">
+            <button onClick={() => handleAccept(req)} className="bg-[#0F4E15] hover:bg-green-700 text-white px-3 py-1.5 rounded flex items-center text-xs font-bold">
               <FaCheck className="mr-1" /> Accept
             </button>
             <button onClick={() => handleReject(req.id)} className="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded flex items-center text-xs font-bold">
