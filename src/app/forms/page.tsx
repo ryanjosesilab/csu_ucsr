@@ -471,7 +471,7 @@ export default function FormsPage() {
     </button>
     </label>
 
-    <p className="form-label fw-bold text-secondary d-flex justify-content-between align-items-center">Note: You can only Request 10 items per Submission</p>
+    <p className="form-label fw-bold text-secondary d-flex justify-content-between align-items-center">Note: You can only Request 10 different items per Submission</p>
 
      {equipmentForm.itemsList.map((item, index) => (
     <div className="row g-2 mb-2 align-items-end" key={index}>
